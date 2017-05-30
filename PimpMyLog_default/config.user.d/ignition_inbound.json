@@ -1,0 +1,35 @@
+{
+    "Ignition Server Other": {
+        "display"   : "Ignition Server Inbound",
+        "path"      : "/opt/www/syslog/ignition.log*",
+        "count"     : 7,
+        "refresh"   : 0,
+        "notify"    : false,
+        "thinit"    : [ "Date" , "ID" , "Inbound" ],
+        "format"    : {
+            "regex" : "|^(.*?) ([0-9]{1,2}) ([0-9]{1,2}:[0-9]{1,2}:[0-9]{1,2}) (.*?) (.*?) ([a-zA-Z0-9_\\-\\.]{1,256}).*catId=(.*?),.*msgId=(.*?), txnInfo=InboundAttributes,(.*), Id=(.*?),.*Remote Attributes=(.*?)$|",
+            "match": {
+                "Date": [ 1 , " " , 2 , " "  , 3 ],
+                "Facilty": 4,
+                "Severity": 5,
+                "IP": 6,
+                "catId": 7,
+                "msgId": 8,
+                "ID": 10,
+                "Inbound": 9,
+                "Remote-Attributes": 11
+            },
+            "types": {
+                "Date": "date:Y/m/d H:i:s/100",
+                "Facility": "txt",
+                "Severity": "badge:severity",
+                "IP": "ip",
+                "catId": "txt",
+                "msgId": "txt",
+                "ID": "txt",
+                "Inbound": "txt",
+                "Remote-Attributes": "text"
+            }
+        }
+    }
+}
