@@ -1,0 +1,24 @@
+{                
+     "voss_cli": {
+         "display"   : "voss_cli",
+         "path"      : "/opt/syslog/voss_cli.log*",
+         "count"     : 7,
+         "format"    : {
+          "regex" : "|^(.*?) ([0-9]{1,2}) ([0-9]{1,2}:[0-9]{1,2}:[0-9]{1,2}) (.*?) (.*?) ([a-zA-Z0-9_\\-\\.]{1,256}) (.*)|",
+             "match": {
+                 "Date": [ 1 , " " , 2 , " "  , 3 ],
+                 "Facilty": 4,
+                 "Severity": 5,
+                 "IP": 6,
+                 "Message": 7
+             },
+             "types": {
+                 "Date": "date:Y/m/d H:i:s/100",
+                 "Facility": "txt",
+                 "Severity": "badge:severity",
+                 "IP": "ip",
+                 "Message": "txt"
+             }
+         }
+     }
+}
