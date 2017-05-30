@@ -1,7 +1,7 @@
 {
     "Ignition Server All": {
         "display"   : "Ignition Server All",
-        "path"      : "/opt/www/syslog/ignition.log*",
+        "path"      : "/opt/syslog/ignition.log*",
         "count"     : 7,
         "refresh"   : 0,
         "notify"    : false,
