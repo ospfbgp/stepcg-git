@@ -1,7 +1,7 @@
 {                
     "Ignition Server Access": {
         "display"   : "Ignition Server Access",
-        "path"      : "/opt/www/syslog/ignition.log*",
+        "path"      : "/opt/syslog/ignition.log*",
         "max"       : 50,
         "refresh"   : 0,
         "count"     : 7,
