@@ -17,7 +17,7 @@ rest: 0.0.0.0:8888/configs
 vars:
   tftpserver: 192.168.1.229
 groups: {}
-pid: "/etc/oxidized/oxidized.pid"
+pid: /etc/oxidized/oxidized.pid
 
 input:
   default: ssh, telnet
@@ -30,8 +30,7 @@ output:
   git:
     user: oxidized
     email: dcox@stepcg.com
-#    single_repo: true
-    repo: "/etc/oxidized/git-repos/switch_backups.git"
+    repo: /etc/oxidized/git-repos/switch_backups.git
 
 #source:
 #  default: csv
