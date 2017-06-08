@@ -5,7 +5,7 @@
         "count"     : 7,
         "refresh"   : 0,
         "notify"    : false,
-        "thinit"    : [ "Date" , "ID" , "Inbound" ],
+        "thinit"    : [ "Date" , "Id" , "Inbound" ],
         "format"    : {
             "regex" : "|^(.*?) ([0-9]{1,2}) ([0-9]{1,2}:[0-9]{1,2}:[0-9]{1,2}) (.*?) (.*?) ([a-zA-Z0-9_\\-\\.]{1,256}).*catId=(.*?),.*msgId=(.*?), txnInfo=InboundAttributes,(.*), Id=(.*?),.*Remote Attributes=(.*?)$|",
             "match": {
@@ -15,7 +15,7 @@
                 "IP": 6,
                 "catId": 7,
                 "msgId": 8,
-                "ID": 10,
+                "Id": 10,
                 "Inbound": 9,
                 "Remote-Attributes": 11
             },
@@ -24,9 +24,9 @@
                 "Facility": "txt",
                 "Severity": "badge:severity",
                 "IP": "ip",
-                "catId": "txt",
-                "msgId": "txt",
-                "ID": "txt",
+                "catId": "numeral",
+                "msgId": "numeral",
+                "Id": "numeral",
                 "Inbound": "txt",
                 "Remote-Attributes": "text"
             }
