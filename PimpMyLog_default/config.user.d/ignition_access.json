@@ -6,7 +6,7 @@
         "refresh"   : 0,
         "count"     : 7,
         "notify"    : false,
-        "thinit"    : [ "Date", "Id" , "UserId" , "msgId" , "AuthServerName" , "AuthenticationDecision" , "AuthenticatorIpAddr" , "AuthenticatorName" , "AuthenticatorType" , "AuthorizationDecision" , "AuthorizationRuleIds" , "Calling-Station-Id-Attr" , "CredentialValidationPolicy" , "Description" , "DeviceType" , "NAS-IP-Addr-Attr" , "NAS-Port-Attr" , "ProvisioningValues" , "User-Name-Attr" ],
+        "thinit"    : [ "Date", "Id" , "UserId" , "AuthServerName" , "AuthenticationDecision" , "AuthenticatorIpAddr" , "AuthenticatorName" , "AuthenticatorType" , "AuthorizationDecision" , "AuthorizationRuleIds" , "Calling-Station-Id-Attr" , "CredentialValidationPolicy" , "Description" , "DeviceType" , "NAS-IP-Addr-Attr" , "NAS-Port-Attr" , "ProvisioningValues" , "User-Name-Attr" ],
         "format"    : {
             "multiline": "Error",
             "regex"    : "|^(.*?) ([0-9]{1,2}) ([0-9]{1,2}:[0-9]{1,2}:[0-9]{1,2}) (.*?) (.*?) ([a-zA-Z0-9_\\\\-\\\\.]{1,256}).*catId=(.*?),.*msgId=(.*?),.*ADDomainAsset=(.*?),.*AssignedAsset=(.*?),.*AuthServerName=(.*?),.*AuthenticationDecision=(.*?),.*AuthenticatorIpAddr=(.*?),.*AuthenticatorName=(.*?),.*AuthenticatorType=(.*?),.*AuthorizationDecision=(.*?),.*AuthorizationRuleIds=(.*?),.*Calling-Station-Id-Attr=(.*?),.*CredentialValidationPolicy=(.*?),.*Description=(.*?),.*DeviceMAC=(.*?),.*DeviceOSType=(.*?),.*DeviceOSVersion=(.*?),.*DeviceSubtype=(.*?),.*DeviceType=(.*?),.*DirectoryServiceName=(.*?),.*EmbeddedAsset=(.*?),.*Id=(.*?),.*InnerIdentity=(.*?),.*LastAuthException=(.*?),.*LicenseGID=(.*?),.*LicenseOID=(.*?),.*NAS-IP-Addr-Attr=(.*?),.*NAS-Port-Attr=(.*?),.*PostureProfileName=(.*?),.*PostureResult=(.*?),.*ProvisioningValues=(.*?),.*ResultCode=(.*?),.*ServiceCatName=(.*?),.*SubauthenticatorName=(.*?),.*TunnelProtocol=(.*?),.*User-Name-Attr=(.*?),.*UserId=(.*?)$|",
@@ -28,7 +28,7 @@
                 "AuthenticatorType": 15,
                 "AuthorizationDecision": 16,
                 "AuthorizationRuleIds": 17,
-                "Calling-Station-Id-Attr": 18,
+                "Calling-Station-Id": 18,
                 "CredentialValidationPolicy": 19,
                 "Description": 20,
                 "DeviceMAC": 21,
@@ -42,8 +42,8 @@
                 "LastAuthException": 30,
                 "LicenseGID": 31,
                 "LicenseOID": 32,
-                "NAS-IP-Addr-Attr": 33,
-                "NAS-Port-Attr": 34,
+                "NAS-IP-Addr": 33,
+                "NAS-Port": 34,
                 "PostureProfileName": 35,
                 "PostureResult": 36,
                 "ProvisioningValues": 37,
@@ -51,7 +51,7 @@
                 "ServiceCatName": 38,
                 "SubauthenticatorName": 39,
                 "TunnelProtocol": 40,
-                "User-Name-Attr": 41
+                "User-Name": 41
             },
             "types"    : {
                 "Date": "date:Y/m/d H:i:s/100",
@@ -71,7 +71,7 @@
                 "AuthenticatorType": "txt",
                 "AuthorizationDecision": "badge:severity",
                 "AuthorizationRuleIds": "txt",
-                "Calling-Station-Id-Attr": "txt",
+                "Calling-Station-Id": "txt",
                 "CredentialValidationPolicy": "txt",
                 "Description": "badge:severity",
                 "DeviceMAC": "txt",
@@ -85,8 +85,8 @@
                 "LastAuthException": "txt",
                 "LicenseGID": "txt",
                 "LicenseOID": "txt",
-                "NAS-IP-Addr-Attr": "txt",
-                "NAS-Port-Attr": "txt",
+                "NAS-IP-Addr": "txt",
+                "NAS-Port": "txt",
                 "PostureProfileName": "txt",
                 "PostureResult": "txt",
                 "ProvisioningValues": "txt",
@@ -94,7 +94,7 @@
                 "ServiceCatName": "txt",
                 "SubauthenticatorName": "txt",
                 "TunnelProtocol": "txt",
-                "User-Name-Attr": "pre"
+                "User-Name": "pre"
             }
         }
     }
