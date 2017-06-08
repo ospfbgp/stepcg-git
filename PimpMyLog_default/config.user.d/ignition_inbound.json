@@ -1,7 +1,7 @@
 {
     "Ignition Server Other": {
         "display"   : "Ignition Server Inbound",
-        "path"      : "/opt/syslog/ignition.log*",
+        "path"      : "/opt/www/syslog/ignition_inbound.log*",
         "count"     : 7,
         "refresh"   : 0,
         "notify"    : false,
