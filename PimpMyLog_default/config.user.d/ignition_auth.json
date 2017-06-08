@@ -1,0 +1,33 @@
+{
+    "Ignition Server Auth": {
+        "display"   : "Ignition Server Auth",
+        "path"      : "/opt/www/syslog/ignition_auth.log*",
+        "count"     : 7,
+        "refresh"   : 0,
+        "notify"    : false,
+        "thinit"    : [ "Date" , "Id" , "Message" ],
+        "format"    : {
+            "regex" : "|^(.*?) ([0-9]{1,2}) ([0-9]{1,2}:[0-9]{1,2}:[0-9]{1,2}) (.*?) (.*?) ([a-zA-Z0-9_\\-\\.]{1,256}).*catId=(.*?),.*msgId=(.*?),.*txnInfo=AuthInformation,(.*),.*Id=(.*)$|",
+            "match": {
+                "Date": [ 1 , " " , 2 , " "  , 3 ],
+                "Facilty": 4,
+                "Severity": 5,
+                "IP": 6,
+                "catId": 7,
+                "msgId": 8,
+                "Id": 10,
+                "Message": 9
+            },
+            "types": {
+                "Date": "date:Y/m/d H:i:s/100",
+                "Facility": "txt",
+                "Severity": "badge:severity",
+                "IP": "ip",
+                "catId": "txt",
+                "msgId": "txt",
+                "Id": "txt",
+                "Message": "txt"
+            }
+        }
+    }
+}
