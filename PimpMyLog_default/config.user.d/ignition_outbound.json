@@ -23,9 +23,9 @@
                 "Facility": "txt",
                 "Severity": "badge:severity",
                 "IP": "ip",
-                "catId": "txt",
-                "msgId": "txt",
-                "Id": "txt",
+                "catId": "numeral",
+                "msgId": "numeral",
+                "Id": "numeral",
                 "Outbound": "txt"
             }
         }
