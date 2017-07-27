@@ -1,4 +1,4 @@
-#For debian 8 put it in /lib/systemd/system/
+For debian 8 put it in /lib/systemd/system/
 #and call it with systemctl start oxidized.service
 
 [Unit]
@@ -7,6 +7,7 @@ Description=Oxidized - Network Device Configuration Backup Tool
 [Service]
 ExecStart=/usr/local/bin/oxidized
 User=oxidized
+KillSignal=SIGINT
 
 [Install]
 WantedBy=multi-user.target
