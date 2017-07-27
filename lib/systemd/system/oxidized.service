@@ -1,5 +1,9 @@
-For debian 8 put it in /lib/systemd/system/
-#and call it with systemctl start oxidized.service
+# For debian 8 put it in /lib/systemd/system/
+# after you add you will need to run sudo systemctl daemon-reload
+# to call use the following commands
+# sudo systemctl status oxidized.service
+# sudo systemctl stop oxidized.service
+# sudo systemctl start oxidized.service
 
 [Unit]
 Description=Oxidized - Network Device Configuration Backup Tool
