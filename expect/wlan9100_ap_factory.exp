@@ -34,7 +34,6 @@ log_file -a $logfile.log
 # set prompt "(%|% |#|# |>|> |\$|\$ )$"
 #set prompt "(%|#|>|\$ )$"
 #set prompt "(%|#|>|\$ )$"
-# Special Prompt for wlan9100
 set prompt "(# )$"
 
 # Announce which device we are working on and at what time
@@ -106,7 +105,6 @@ expect  -re $prompt
 send "exit\n"
 expect  -re $prompt 
 send "save\n"
-# Check for configuration save
 expect  -re "Saving configuration.*OK"
 send "\r"
 expect  -re $prompt 
