@@ -1,0 +1,76 @@
+#!/usr/bin/expect -f
+exp_internal 0
+log_user 1
+
+set timeout 180
+ 
+# Set variables
+#set username $env(USER)
+set ipaddress  [lindex $argv 0]
+set username   [lindex $argv 1]
+set password   [lindex $argv 2]
+#set username TQL@Admin$
+#set password Fr33G3@r!
+
+set tftpboot /private/tftpboot
+
+# check for arguments
+if {$argc != 3} {
+  puts "Error: Wrong input arguments.\r"
+  puts "Correct usage: expect $argv0 <ip address> <username> <password>\r"
+  exit 1
+}
+
+# get just execute filename so we can use that as log file
+set logfile [file tail $argv0]
+# replace .exp with nothing dn \.sh
+regsub -all "\.exp" $logfile "" logfile
+regsub -all "\.sh" $logfile "" logfile
+puts "logfile $logfile\r"
+ 
+# Log results
+log_file -a $logfile.log
+
+# set prompt
+# set prompt "(%|% |#|# |>|> |\$|\$ )$"
+# set prompt "(%|% |#|# |>|> |\$|\$ )$"
+#set prompt "(%|#|>|\$ )$"
+set prompt "(%|#|# |>|\$ )$"
+
+# Announce which device we are working on and at what time
+send_user "\n"
+send_user ">>>>>  Working on $ipaddress @ [exec date] <<<<<\n"
+send_user "\n"
+
+# -------------- ssh -------------- #
+
+# Don't check keys
+spawn ssh -o StrictHostKeyChecking=no $username\@$ipaddress
+
+# Allow this script to handle ssh connection issues
+expect {
+ timeout { send_user "\nTimeout Exceeded - Check Host\n"; exit 1 }
+ eof { send_user "\nSSH Connection To $ipaddress Failed\n"; exit 1 }
+ -re $prompt {}
+ -re "(assword: )$" { send "$password\n"; }
+}
+
+# -------------- commands go here -------------- #
+ 
+#Let's go to configure mode
+expect  -re $prompt 
+send "config\n";
+expect  -re $prompt 
+send "file\n";
+expect  -re $prompt 
+send "chkdsk\n"
+expect  -re $prompt 
+send "exit\n";
+expect  -re $prompt 
+send "reset preserve-ip-settings\n";
+#expect  -re  "(no]: )$"
+expect  -re  "(yes/no]: )$"
+send "yes\n"
+expect  -re  "Access Point will be rebooted."
+send_user "\n>>>>>  Done on $ipaddress @ [exec date] <<<<<\n"
+exit
