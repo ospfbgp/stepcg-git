@@ -3,7 +3,7 @@ username: rwa
 password: rwa
 model: voss
 # Interval to retrieve configurations
-interval: 3600
+interval: 43200
 log: /etc/oxidized/log
 use_syslog: false
 debug: false
