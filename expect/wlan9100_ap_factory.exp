@@ -33,8 +33,7 @@ log_file -a $logfile.log
 # set prompt "(%|% |#|# |>|> |\$|\$ )$"
 # set prompt "(%|% |#|# |>|> |\$|\$ )$"
 #set prompt "(%|#|>|\$ )$"
-#set prompt "(%|#|>|\$ )$"
-set prompt "(# )$"
+set prompt "(%|#|# |>|\$ )$"
 
 # Announce which device we are working on and at what time
 send_user "\n"
@@ -57,58 +56,19 @@ expect {
 # -------------- commands go here -------------- #
  
 #Let's go to configure mode
-sleep 2
-send "\r"
-send "\r"
-send "\r"
 expect  -re $prompt 
-send "config\n"
+send "config\n";
 expect  -re $prompt 
-send "interface iap2\n"
+send "file\n";
 expect  -re $prompt 
-send "description   \"\"\n"
+send "chkdsk\n"
 expect  -re $prompt 
-send "band          5GHz\n"
+send "exit\n";
 expect  -re $prompt 
-send "bond-40Mhz    off\n"
-expect  -re $prompt 
-send "bond-80Mhz    off\n"
-expect  -re $prompt 
-send "mode          anac\n"
-expect  -re $prompt 
-send "cellsize      manual\n"
-expect  -re $prompt 
-send "tx-power      12\n"
-expect  -re $prompt 
-send "up\n"
-expect  -re $prompt 
-send "exit\n"
-expect  -re $prompt 
-send "interface iap1\n"
-expect  -re $prompt 
-send "description   \"\"\n"
-expect  -re $prompt 
-send "band          2.4GHz\n"
-expect  -re $prompt 
-send "bond-40Mhz    off\n"
-expect  -re $prompt 
-send "bond-80Mhz    off\n"
-expect  -re $prompt 
-send "mode          gn\n"
-expect  -re $prompt 
-send "cellsize      manual\n"
-expect  -re $prompt 
-send "tx-power      3\n"
-expect  -re $prompt 
-send "up\n"
-expect  -re $prompt 
-send "exit\n"
-expect  -re $prompt 
-send "save\n"
-expect  -re "Saving configuration.*OK"
-send "\r"
-expect  -re $prompt 
-sleep 2
-send "exit\n"
+send "reset preserve-ip-settings\n";
+#expect  -re  "(no]: )$"
+expect  -re  "(yes/no]: )$"
+send "yes\n"
+expect  -re  "Access Point will be rebooted."
 send_user "\n>>>>>  Done on $ipaddress @ [exec date] <<<<<\n"
 exit
