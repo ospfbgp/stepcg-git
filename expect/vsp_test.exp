@@ -1,0 +1,88 @@
+#!/usr/bin/expect -f
+exp_internal 0
+log_user 1
+
+set timeout 180
+ 
+# Set variables
+set ipaddress  [lindex $argv 0]
+set username   [lindex $argv 1]
+set password   [lindex $argv 2]
+
+# check for $argv 0
+if {"$ipaddress" == ""} {
+  puts "Error: Wrong input arguments.\r"
+  puts "Correct usage: $argv0 <ip address> <username> <password>\r"
+  exit 1
+}
+
+# set default username
+if {"$username" == ""} {
+    set username rwa
+}
+# set default password
+if {"$password" == ""} {
+    set password rwa
+}
+puts "Debug: $ipaddress $username $password\r"
+
+# get just execute filename so we can use that as log file
+set logfile [file tail $argv0]
+# replace .exp with nothing dn \.sh
+regsub -all "\.exp" $logfile "" logfile
+regsub -all "\.sh" $logfile "" logfile
+puts "logfile $logfile\r"
+ 
+# Log results
+log_file -a $logfile.log
+
+# set prompt
+set prompt "(%|#|>|\$ )$"
+
+# Announce which device we are working on and at what time
+send_user "\n"
+send_user ">>>>>  Working on $ipaddress @ [exec date] <<<<<\n"
+send_user "\n"
+
+# -------------- ssh -------------- #
+
+# Don't check keys
+spawn ssh -o StrictHostKeyChecking=no $username\@$ipaddress
+
+# Allow this script to handle ssh connection issues
+expect {
+ timeout { send_user "\nTimeout Exceeded - Check Host\n"; exit 1 }
+ eof { send_user "\nSSH Connection To $ipaddress Failed\n"; exit 1 }
+ -re $prompt {}
+ -re "(assword: )$" { send "$password\n"; }
+}
+
+# -------------- telnet -------------- #
+
+#spawn telnet $ipaddress
+#
+#expect  -re "Enter Username" 
+#sleep 1
+#send "$username\n"
+#sleep 1
+#expect  -re "Enter Password" 
+#sleep 1
+#send "$password\n"
+#sleep 1
+#send "\n"
+#send "\n"
+ 
+# -------------- commands go here -------------- #
+sleep 2
+expect -re $prompt
+send "enable\n"
+expect -re $prompt
+send "wri mem\n"
+expect ".*successful.*"
+expect -re $prompt
+send "exit\n"
+sleep 2
+
+# Announce complete
+send_user "\n>>>>>  Done on $ipaddress @ [exec date] <<<<<\n"
+exit
