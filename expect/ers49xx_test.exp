@@ -1,0 +1,97 @@
+#!/usr/bin/expect -f
+exp_internal 0
+log_user 1
+
+set timeout 180
+ 
+# Set variables
+#set username $env(USER)
+set ipaddress  [lindex $argv 0]
+set username   [lindex $argv 1]
+set password   [lindex $argv 2]
+set username dcox
+set password tokenring
+
+# create file on tftpserver for switch backup
+#exec touch $tftpboot/$ipaddress.cfg
+#exec chmod 666 $tftpboot/$ipaddress.cfg
+
+# get just execute filename so we can use that as log file
+set logfile [file tail $argv0]
+# replace .exp with nothing dn \.sh
+regsub -all "\.exp" $logfile "" logfile
+regsub -all "\.sh" $logfile "" logfile
+puts "logfile $logfile\r"
+ 
+# Log results
+log_file -a $logfile.log
+
+# set prompt
+set prompt "(%|#|>|\$ )$"
+
+# Announce which device we are working on and at what time
+send_user "\n"
+send_user ">>>>>  Working on $ipaddress @ [exec date] <<<<<\n"
+send_user "\n"
+
+# -------------- ssh -------------- #
+
+# Don't check keys
+spawn ssh -o StrictHostKeyChecking=no $username\@$ipaddress
+
+# Allow this script to handle ssh connection issues
+expect {
+ timeout { send_user "\nTimeout Exceeded - Check Host\n"; exit 1 }
+ eof { send_user "\nSSH Connection To $ipaddress Failed\n"; exit 1 }
+ -re $prompt {}
+ -re "(assword: )$" { send "$password\n"; }
+}
+
+# -------------- telnet -------------- #
+
+#spawn telnet $ipaddress
+#
+#expect  -re "Enter Username" 
+#sleep 1
+#send "$username\n"
+#sleep 1
+#expect  -re "Enter Password" 
+#sleep 1
+#send "$password\n"
+#sleep 1
+#send "\n"
+#send "\n"
+ 
+# -------------- commands go here -------------- #
+sleep 4
+send "\r"
+set Cy "\031" ;# octal
+set Cy "\x19" ;# hex
+exp_send $Cy
+sleep 2
+send "\r"
+send "\r"
+send "\r"
+expect -re $prompt
+send "enable\n";
+expect -re $prompt
+send "\r"
+expect -re $prompt
+send "terminal length 0\r"
+expect -re $prompt
+send "config t\n"
+expect -re $prompt
+send "no autosave enable\n"
+expect -re $prompt
+send "default terminal length\n"
+expect -re $prompt
+send "terminal width 132\n"
+expect -re $prompt
+send "no password security\n"
+expect -re $prompt
+send "wri mem\n"
+expect -re $prompt
+send "logout\n"
+expect -re $prompt
+send_user "\n>>>>>  Done on $ipaddress @ [exec date] <<<<<\n"
+exit
