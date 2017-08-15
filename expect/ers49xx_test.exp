@@ -5,12 +5,26 @@ log_user 1
 set timeout 180
  
 # Set variables
-#set username $env(USER)
 set ipaddress  [lindex $argv 0]
 set username   [lindex $argv 1]
 set password   [lindex $argv 2]
-set username dcox
-set password tokenring
+
+# check for $argv 0
+if {"$ipaddress" == ""} {
+  puts "Error: Wrong input arguments.\r"
+  puts "Correct usage: $argv0 <ip address> <username> <password>\r"
+  exit 1
+}
+
+# set default username
+if {"$username" == ""} {
+    set username RW
+}
+# set default password
+if {"$password" == ""} {
+    set password securepasswd
+}
+puts "Debug: $ipaddress $username $password\r"
 
 # create file on tftpserver for switch backup
 #exec touch $tftpboot/$ipaddress.cfg
