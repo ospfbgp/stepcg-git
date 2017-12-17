@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 # Author : Daniel Cox (danielcoxman@gmail.com)
-# Date : 6/25/2014
+# Date : 12/17/2017
 # version 1.0
 # Check IS-IS interface status on erk8k, vsp9k
 
@@ -10,69 +10,23 @@
 #adjacency mibs for vsp7k IS-IS
 #1.3.6.1.4.1.2272.1.63.10.1
 #1.3.6.1.2.1.138.1.6.1
-
-#isisCircIfIndex = 1.3.6.1.3.37.1.3.2.1.2 
-#rcIsisCircuitType = 1.3.6.1.4.1.2272.1.63.2.1.2
-#rcIsisCircuitOperState = 1.3.6.1.4.1.2272.1.63.2.1.8
-#rcPortName = 1.3.6.1.4.1.2272.1.4.10.1.1.35
-#rcMltName = 1.3.6.1.4.1.2272.1.17.10.1.2
-#
-#isisCircIfIndex OBJECT-TYPE
-#        SYNTAX InterfaceIndex
-#        MAX-ACCESS read-create
-#        STATUS current
-#        DESCRIPTION
-#            "The value of ifIndex for the interface to which this
-#             circuit corresponds.   This object cannot be modified
-#             after creation."
-#    ::= { isisCircEntry 2 }
-#rcIsisCircuitType    OBJECT-TYPE
-#        SYNTAX        INTEGER {
-#                          bcast(1),
-#                          ptpt(2),
-#                          passive(3)
-#                      }
-#        MAX-ACCESS    read-write
-#        STATUS        current
-#        DESCRIPTION   "ISIS circuit type this is an extention to
-#                       ISIS circuit table, this was required a
-#                       standard MIB circuit type does not support
-#                       passive type"
-#            DEFVAL        { bcast }
-#        ::= { rcIsisCircuitEntry 2 }
-#rcIsisCircuitOperState     OBJECT-TYPE
-#        SYNTAX        INTEGER {
-#                        unknown(0),
-#                        up(1),    
-#                        down(2)      
-#                      }
-#        MAX-ACCESS    read-only 
-#        STATUS        current
-#        DESCRIPTION   "This variable tells the operating state of circ"
-#        ::= { rcIsisCircuitEntry 8 }
-#rcIsisAdjHostName OBJECT-TYPE
-##        SYNTAX     OCTET STRING (SIZE (0..255))
-#        MAX-ACCESS read-only
-#        STATUS     current
-#        DESCRIPTION   
-#            "The hostname listed in LSP, or the system name if host 
-#             name is not configured."
-#        ::= { rcIsisAdjEntry 3 }
-#
-#rcIsisAdjIfIndex OBJECT-TYPE
-#        SYNTAX InterfaceIndex
-#        MAX-ACCESS read-only
-#        STATUS current
-#        DESCRIPTION
-#            "The value of ifIndex for the interface to which this
-#             circuit corresponds."
-#    ::= { rcIsisAdjEntry 4 }
-#[coxd@wangraph ~/ers8kmibs/mibs]$ snmpwalk -OenQ -v2c -c helpdesk 172.24.7.5 1.3.6.1.4.1.2272.1.63.10.1
-#.1.3.6.1.4.1.2272.1.63.10.1.3.1.1 = "ksp12.can2"
-#.1.3.6.1.4.1.2272.1.63.10.1.4.1.1 = 238
-#
-#snmpwalk -OenQ -v2c -c helpdesk 172.25.99.125 .1.3.6.1.4.1.2272.1.63.10.1.4
-
+# Mibs used
+# isisSysAdminState       1.3.6.1.3.37.1.1.1.8.0
+# isisCircIfIndex         1.3.6.1.3.37.1.3.2.1.2
+# isisCircAdminState      1.3.6.1.3.37.1.3.2.1.3
+# isisCircType            1.3.6.1.3.37.1.3.2.1.5
+# rcIsisCircuitOperState  1.3.6.1.4.1.2272.1.63.2.1.8
+# rcIsisCircuitNumAdj     1.3.6.1.4.1.2272.1.63.2.1.9
+# rcIsisCircuitNumUpAdj   1.3.6.1.4.1.2272.1.63.2.1.10
+# rcMltId                 1.3.6.1.4.1.2272.1.17.10.1.1
+# rcMltName               1.3.6.1.4.1.2272.1.17.10.1.2
+# rcMltIfIndex            1.3.6.1.4.1.2272.1.17.10.1.11
+# rcPortName              1.3.6.1.4.1.2272.1.4.10.1.1.35
+# IfIndex                 1.3.6.1.2.1.2.2.1.2
+# IfName                  1.3.6.1.2.1.31.1.1.1.1
+# ifAlias                 1.3.6.1.2.1.31.1.1.1.18
+# ifAdminStatus           1.3.6.1.2.1.2.2.1.7
+# rcIsisLocalInterface    1.3.6.1.4.1.2272.1.63.9.7.0 
 use strict;
 use warnings;
 use Getopt::Std;
@@ -129,35 +83,8 @@ if ( $verbose ) {
     print "sysName *$sysName*\n";
 }
 
-# my @ifName = `$snmpwalk 1.3.6.1.2.1.31.1.1.1.1`;
-# my @ifAdminStatus = `$snmpwalk 1.3.6.1.2.1.2.2.1.7`;
-# rcMltName 1.3.6.1.4.1.2272.1.17.10.1.2
-#isisCircIfIndex = 1.3.6.1.3.37.1.3.2.1.2
-#rcIsisCircuitType = 1.3.6.1.4.1.2272.1.63.2.1.2
-#rcIsisCircuitOperState = 1.3.6.1.4.1.2272.1.63.2.1.8 2 = disabled 1 = enabled
-#1.3.6.1.3.37.1.1.1.8      isisSysAdminState
-#1.3.6.1.3.37.1.3.2        isisCircTable                     NODE
-#1.3.6.1.3.37.1.3.2.1      isisCircEntry                     NODE
-#1.3.6.1.3.37.1.3.2.1.1    isisCircIndex                     LEAF  IndexInteger
-#1.3.6.1.3.37.1.3.2.1.2    isisCircIfIndex                   LEAF  InterfaceIndex
-#1.3.6.1.3.37.1.3.2.1.3    isisCircAdminState                LEAF  AdminState
-#1.3.6.1.3.37.1.3.2.1.4    isisCircExistState                LEAF  RowStatus
-#1.3.6.1.3.37.1.3.2.1.5    isisCircType                      LEAF  INTEGER
-#1.3.6.1.3.37.1.3.2.1.6    isisCircExtDomain                 LEAF  TruthValue
-#1.3.6.1.3.37.1.3.2.1.7    isisCircLevelType                 LEAF  IsisLevel
-#1.3.6.1.3.37.1.3.2.1.8    isisCircPassiveCircuit            LEAF  TruthValue
-#1.3.6.1.3.37.1.3.2.1.9    isisCircMeshGroupEnabled          LEAF  INTEGER
-#1.3.6.1.3.37.1.3.2.1.10   isisCircMeshGroup                 LEAF  Unsigned32
-#1.3.6.1.3.37.1.3.2.1.11   isisCircSmallHellos               LEAF  TruthValue
-#1.3.6.1.3.37.1.3.2.1.12   isisCircLastUpTime                LEAF  TimeStamp
-#1.3.6.1.3.37.1.3.2.1.13   isisCirc3WayEnabled               LEAF  TruthValue
-#1.3.6.1.3.37.1.3.2.1.14   isisCircExtendedCircID            LEAF  Unsigned32
-#rcIsisLocalInterface 1.3.6.1.4.1.2272.1.63.9.7.0 
-# mibs for ers8k, vsp4k, vsp9k
-#my @rcIsisCircuitType      = `$snmpwalk 1.3.6.1.4.1.2272.1.63.2.1.2`;
-
 # check to see if isis globally enabled
-my $isisSysAdminState =`$snmpget 1.3.6.1.3.37.1.1.1.8.0`;
+my $isisSysAdminState = `$snmpget 1.3.6.1.3.37.1.1.1.8.0`;
 # Global hash to store isis interfaces
 my %isis;
 $isisSysAdminState = &fix_snmp_result($isisSysAdminState);
