@@ -174,52 +174,10 @@ my %rcMltTable;
 my @rcMltTable = `$snmpwalk 1.3.6.1.4.1.2272.1.17.10.1.1`;
 # Check to see if MLT exist
 if ( grep( ! /No Such/, @rcMltTable ) ) { 
-        print "MLT(s) exist\n";
-        if ( $verbose ) { print "rcMltId\n@rcMltTable\n"; }
-        if ( @rcMltTable ) {
-        foreach (@rcMltTable) {
-                my ($index, $result) = &chopit($_);
-                $rcMltTable{$index}{rcMltId} = $result;
-                if ( $verbose ) { print "rcMltId=$rcMltTable{$index}{rcMltId}\n"; }
-            }
-            if ( $verbose ) { print "\n"; }
-        }
-        # Get names of MLTs
-        @rcMltTable = `$snmpwalk 1.3.6.1.4.1.2272.1.17.10.1.2`;
-        if ( $verbose ) { print "rcMltName\n@rcMltTable\n"; }
-        if ( @rcMltTable ) {
-            foreach (@rcMltTable) {
-                my ($index, $result) = &chopit($_);
-                $rcMltTable{$index}{rcMltName} = $result;
-                if ( $verbose ) { print "rcMltName=$rcMltTable{$index}{rcMltName}\n"; }
-            }
-            if ( $verbose ) { print "\n"; }
-        }
-        # Get IfIndex number of each MLT
-        @rcMltTable = `$snmpwalk 1.3.6.1.4.1.2272.1.17.10.1.11`;
-        if ( $verbose ) { print "rcMltIfIndex\n@rcMltTable\n"; }
-        if ( @rcMltTable ) {
-            foreach (@rcMltTable) {
-                my ($index, $result) = &chopit($_);
-                $rcMltTable{$index}{rcMltIfIndex} = $result;
-                if ( $verbose ) { print "rcMltIfIndex=$rcMltTable{$index}{rcMltIfIndex}\n"; }
-            }
-            if ( $verbose ) { print "\n"; }
-        }
-
-        print "start key for mlt\n";
-        for my $key ( sort {$a<=>$b} keys %rcMltTable){
-             if ( $verbose ) { print "rcMltTable key=$key\n"; }
-             if ( defined $rcMltTable{$key}{rcMltId}){
-                 print "rcMltTable key=$key rcMltId=$rcMltTable{$key}{rcMltId}\n"; 
-                 print "rcMltTable key=$key rcMltName=$rcMltTable{$key}{rcMltName}\n"; 
-                 print "rcMltTable key=$key rcMltIfIndex=$rcMltTable{$key}{rcMltIfIndex}\n"; 
-             }
-        }
-    print "end key for mlt\n";
-    }
-    else { 
-        print "No MLT(s)\n";
+    print "MLT(s) exist\n";
+    &get_mlt;
+} else { 
+    print "No MLT(s)\n";
 }
 
 # Get ifDescr, ifName, ifAlias, ifAdminStatus for IS-IS interfaces
@@ -324,7 +282,47 @@ else {
      print "$rstring";
      exit $STATE_OK;  
 }
-
+sub get_mlt {
+    if ( $verbose ) { print "rcMltId\n@rcMltTable\n"; }
+    if ( @rcMltTable ) {
+        foreach (@rcMltTable) {
+            my ($index, $result) = &chopit($_);
+            $rcMltTable{$index}{rcMltId} = $result;
+            if ( $verbose ) { print "rcMltId=$rcMltTable{$index}{rcMltId}\n"; }
+         }
+         if ( $verbose ) { print "\n"; }
+     }
+     # Get names of MLTs
+     @rcMltTable = `$snmpwalk 1.3.6.1.4.1.2272.1.17.10.1.2`;
+     if ( $verbose ) { print "rcMltName\n@rcMltTable\n"; }
+     if ( @rcMltTable ) {
+         foreach (@rcMltTable) {
+            my ($index, $result) = &chopit($_);
+            $rcMltTable{$index}{rcMltName} = $result;
+            if ( $verbose ) { print "rcMltName=$rcMltTable{$index}{rcMltName}\n"; }
+         }
+         if ( $verbose ) { print "\n"; }
+     }
+     # Get IfIndex number of each MLT
+     @rcMltTable = `$snmpwalk 1.3.6.1.4.1.2272.1.17.10.1.11`;
+     if ( $verbose ) { print "rcMltIfIndex\n@rcMltTable\n"; }
+     if ( @rcMltTable ) {
+         foreach (@rcMltTable) {
+             my ($index, $result) = &chopit($_);
+             $rcMltTable{$index}{rcMltIfIndex} = $result;
+             if ( $verbose ) { print "rcMltIfIndex=$rcMltTable{$index}{rcMltIfIndex}\n"; }
+         }
+         if ( $verbose ) { print "\n"; }
+     }
+     for my $key ( sort {$a<=>$b} keys %rcMltTable){
+         if ( $verbose ) { print "rcMltTable key=$key\n"; }
+         if ( defined $rcMltTable{$key}{rcMltId}){
+             print "rcMltTable key=$key rcMltId=$rcMltTable{$key}{rcMltId}\n"; 
+             print "rcMltTable key=$key rcMltName=$rcMltTable{$key}{rcMltName}\n"; 
+             print "rcMltTable key=$key rcMltIfIndex=$rcMltTable{$key}{rcMltIfIndex}\n"; 
+         }
+     }
+}
 sub get_isis_interfaces {
     # Get isis information for all interfaces
     my @isisCircIfIndex = `$snmpwalk 1.3.6.1.3.37.1.3.2.1.2`;
