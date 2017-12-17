@@ -157,87 +157,16 @@ if ( $verbose ) {
 # mibs for ers8k, vsp4k, vsp9k
 #my @rcIsisCircuitType      = `$snmpwalk 1.3.6.1.4.1.2272.1.63.2.1.2`;
 
-# check to see if vlacp globally enabled
+# check to see if isis globally enabled
 my $isisSysAdminState =`$snmpget 1.3.6.1.3.37.1.1.1.8.0`;
 $isisSysAdminState = &fix_snmp_result($isisSysAdminState);
 if ( $isisSysAdminState eq 2 ) { 
-   print "OK: IS-IS not globally enabled\n"; exit $STATE_OK; }
+   print "OK: IS-IS not globally enabled\n"; exit $STATE_OK; 
+}
 
-    # Get isis information for all interfaces
-    my %isis;
-    my @isisCircIfIndex = `$snmpwalk 1.3.6.1.3.37.1.3.2.1.2`;
-    if ( $verbose ) { print "isisCircIfIndex\n@isisCircIfIndex\n"; }
-    if ( @isisCircIfIndex ) {
-        foreach (@isisCircIfIndex) {
-            my ($index, $result) = &chopit($_);
-            $isis{$index}{IfIndex} = $result;
-            if ( $verbose ) { print "IfIndex=$isis{$index}{IfIndex}\n"; }
-        }
-        if ( $verbose ) { print "\n"; }
-    }
-    my @isisCircAdminState = `$snmpwalk 1.3.6.1.3.37.1.3.2.1.3`;
-    if ( $verbose ) { print "isisCircAdminState\n@isisCircAdminState\n"; }
-    if ( @isisCircAdminState ) {
-        foreach (@isisCircAdminState) {
-        my ($index, $result) = &chopit($_);
-        $isis{$index}{AdminState} = $result;
-            if ($result == 0 ) { $isis{$index}{AdminState} = "unknown";}
-            elsif ($result == 1 ) { $isis{$index}{AdminState} = "enabled";}
-            elsif ($result == 2 ) { $isis{$index}{AdminState} = "disabled";}
-                if ( $verbose ) { print "AdminState=$isis{$index}{AdminState}\n"; }
-            }
-        if ( $verbose ) { print "\n"; }
-    }
-    my @isisCircType = `$snmpwalk 1.3.6.1.3.37.1.3.2.1.5`;
-    if ( $verbose ) { print "isisCircType\n@isisCircType\n"; }
-    if ( @isisCircType ) {
-        foreach (@isisCircType) {
-            my ($index, $result) = &chopit($_);
-            $isis{$index}{Type} = $result;
-            if ($result == 1 ) { $isis{$index}{Type} = "bcast";}
-            elsif ($result == 2 ) { $isis{$index}{Type} = "ptpt";}
-            elsif ($result == 3 ) { $isis{$index}{Type} = "staticIn";}
-            elsif ($result == 4 ) { $isis{$index}{Type} = "staticOut";}
-            elsif ($result == 5 ) { $isis{$index}{Type} = "dA";}
-            else  { $isis{$index}{Type} = "unknown";}
-            if ( $verbose ) { print "Type=$isis{$index}{Type}\n"; }
-       }
-            if ( $verbose ) { print "\n"; }
-    }
-    my @rcIsisCircuitOperState = `$snmpwalk 1.3.6.1.4.1.2272.1.63.2.1.8`;
-    if ( $verbose ) { print "rcIsisCircuitOperState\n@rcIsisCircuitOperState\n"; }
-    if ( @rcIsisCircuitOperState ) {
-       foreach (@rcIsisCircuitOperState) {
-           my ($index, $result) = &chopit($_);
-           $isis{$index}{OperState} = $result;
-           if ($result == 0 ) { $isis{$index}{OperState} = "unknown";}
-           elsif ($result == 1 ) { $isis{$index}{OperState} = "up";}
-           elsif ($result == 2 ) { $isis{$index}{OperState} = "down";}
-           else  { $isis{$index}{OperState} = "unknown";}
-           if ( $verbose ) { print "OperState=$isis{$index}{OperState}\n"; }
-       }
-           if ( $verbose ) { print "\n"; }
-    }
-    my @rcIsisCircuitNumAdj = `$snmpwalk 1.3.6.1.4.1.2272.1.63.2.1.9`;
-    if ( $verbose ) { print "rcIsisCircuitNumAdj\n@rcIsisCircuitNumAdj\n"; }
-    if ( @rcIsisCircuitNumAdj ) {
-       foreach (@rcIsisCircuitNumAdj) {
-           my ($index, $result) = &chopit($_);
-           $isis{$index}{NumAdj} = $result;
-           if ( $verbose ) { print "NumAdj=$isis{$index}{NumAdj}\n"; }
-       }
-       if ( $verbose ) { print "\n"; }
-    }
-    my @rcIsisCircuitNumUpAdj  = `$snmpwalk 1.3.6.1.4.1.2272.1.63.2.1.10`;
-    if ( $verbose ) { print "rcIsisCircuitNumUpAdj\n@rcIsisCircuitNumUpAdj\n"; }
-    if ( @rcIsisCircuitNumUpAdj ) {
-       foreach (@rcIsisCircuitNumUpAdj) {
-           my ($index, $result) = &chopit($_);
-           $isis{$index}{NumUpAdj} = $result;
-           if ( $verbose ) { print "NumUpAdj=$isis{$index}{NumUpAdj}\n"; }
-       }
-       if ( $verbose ) { print "\n"; }
-    }
+# Global has to store isis interfaces
+my %isis;
+&get_isis_interfaces;
     
     # Get list of MLTs
     my %rcMltTable;
@@ -392,9 +321,85 @@ elsif (defined $statewarning) {
 } 
 else { 
      print "$rstring";
-     exit $STATE_OK;
+     exit $STATE_OK;  
 }
 
+sub get_isis_interfaces {
+    # Get isis information for all interfaces
+    my @isisCircIfIndex = `$snmpwalk 1.3.6.1.3.37.1.3.2.1.2`;
+    if ( $verbose ) { print "isisCircIfIndex\n@isisCircIfIndex\n"; }
+    if ( @isisCircIfIndex ) {
+        foreach (@isisCircIfIndex) {
+            my ($index, $result) = &chopit($_);
+            $isis{$index}{IfIndex} = $result;
+            if ( $verbose ) { print "IfIndex=$isis{$index}{IfIndex}\n"; }
+        }
+        if ( $verbose ) { print "\n"; }
+    }
+    my @isisCircAdminState = `$snmpwalk 1.3.6.1.3.37.1.3.2.1.3`;
+    if ( $verbose ) { print "isisCircAdminState\n@isisCircAdminState\n"; }
+    if ( @isisCircAdminState ) {
+        foreach (@isisCircAdminState) {
+        my ($index, $result) = &chopit($_);
+        $isis{$index}{AdminState} = $result;
+            if ($result == 0 ) { $isis{$index}{AdminState} = "unknown";}
+            elsif ($result == 1 ) { $isis{$index}{AdminState} = "enabled";}
+            elsif ($result == 2 ) { $isis{$index}{AdminState} = "disabled";}
+                if ( $verbose ) { print "AdminState=$isis{$index}{AdminState}\n"; }
+            }
+        if ( $verbose ) { print "\n"; }
+    }
+    my @isisCircType = `$snmpwalk 1.3.6.1.3.37.1.3.2.1.5`;
+    if ( $verbose ) { print "isisCircType\n@isisCircType\n"; }
+    if ( @isisCircType ) {
+        foreach (@isisCircType) {
+            my ($index, $result) = &chopit($_);
+            $isis{$index}{Type} = $result;
+            if ($result == 1 ) { $isis{$index}{Type} = "bcast";}
+            elsif ($result == 2 ) { $isis{$index}{Type} = "ptpt";}
+            elsif ($result == 3 ) { $isis{$index}{Type} = "staticIn";}
+            elsif ($result == 4 ) { $isis{$index}{Type} = "staticOut";}
+            elsif ($result == 5 ) { $isis{$index}{Type} = "dA";}
+            else  { $isis{$index}{Type} = "unknown";}
+            if ( $verbose ) { print "Type=$isis{$index}{Type}\n"; }
+       }
+            if ( $verbose ) { print "\n"; }
+    }
+    my @rcIsisCircuitOperState = `$snmpwalk 1.3.6.1.4.1.2272.1.63.2.1.8`;
+    if ( $verbose ) { print "rcIsisCircuitOperState\n@rcIsisCircuitOperState\n"; }
+    if ( @rcIsisCircuitOperState ) {
+       foreach (@rcIsisCircuitOperState) {
+           my ($index, $result) = &chopit($_);
+           $isis{$index}{OperState} = $result;
+           if ($result == 0 ) { $isis{$index}{OperState} = "unknown";}
+           elsif ($result == 1 ) { $isis{$index}{OperState} = "up";}
+           elsif ($result == 2 ) { $isis{$index}{OperState} = "down";}
+           else  { $isis{$index}{OperState} = "unknown";}
+           if ( $verbose ) { print "OperState=$isis{$index}{OperState}\n"; }
+       }
+           if ( $verbose ) { print "\n"; }
+    }
+    my @rcIsisCircuitNumAdj = `$snmpwalk 1.3.6.1.4.1.2272.1.63.2.1.9`;
+    if ( $verbose ) { print "rcIsisCircuitNumAdj\n@rcIsisCircuitNumAdj\n"; }
+    if ( @rcIsisCircuitNumAdj ) {
+       foreach (@rcIsisCircuitNumAdj) {
+           my ($index, $result) = &chopit($_);
+           $isis{$index}{NumAdj} = $result;
+           if ( $verbose ) { print "NumAdj=$isis{$index}{NumAdj}\n"; }
+       }
+       if ( $verbose ) { print "\n"; }
+    }
+    my @rcIsisCircuitNumUpAdj  = `$snmpwalk 1.3.6.1.4.1.2272.1.63.2.1.10`;
+    if ( $verbose ) { print "rcIsisCircuitNumUpAdj\n@rcIsisCircuitNumUpAdj\n"; }
+    if ( @rcIsisCircuitNumUpAdj ) {
+       foreach (@rcIsisCircuitNumUpAdj) {
+           my ($index, $result) = &chopit($_);
+           $isis{$index}{NumUpAdj} = $result;
+           if ( $verbose ) { print "NumUpAdj=$isis{$index}{NumUpAdj}\n"; }
+       }
+       if ( $verbose ) { print "\n"; }
+    }
+}
 ### Clean up string, split on = and return just value
 sub fix_snmp_result {
      chomp $_[0];
