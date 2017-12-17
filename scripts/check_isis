@@ -139,36 +139,26 @@ for my $key ( sort {$a<=>$b} keys %isis) {
     $isis_error=0;
     if (defined $isis{$key}{ifAdminStatus} && $isis{$key}{ifAdminStatus} eq "1" && defined $isis{$key}{AdminState} && $isis{$key}{AdminState} eq "enabled" && defined $isis{$key}{OperState} && defined $isis{$key}{NumUpAdj}){
         if ($isis{$key}{OperState} ne "up"){
-            if ( $verbose ){ print "warning "; }
-            $statewarning = 1;
-            $isis_interface_errors++;
-            $isis_error = 1;
+            $isis{$key}{error} = 1;
         } elsif ( $isis{$key}{OperState} eq "up" && $isis{$key}{NumUpAdj} ne "1" ){
-            if ( $verbose ){ print "warning "; }
-            $statewarning = 1;
-            $isis_interface_errors++;
-            $isis_error = 1;
+            $isis{$key}{error} = 1;
         } elsif ( $isis{$key}{OperState} eq "up" && $isis{$key}{NumUpAdj} eq "1" ){
-           #print "OK ";
+           $isis{$key}{error} = 0;
         } else {  print "unknown "; }
         if ( $verbose ) { print "$key $isis{$key}{ifAdminStatus} $isis{$key}{AdminState} $isis{$key}{OperState} $isis{$key}{NumUpAdj}\n"; }
     }
     # process logical interfaces
     if (defined $isis{$key}{ifAdminStatus} && $isis{$key}{ifAdminStatus} eq "null" && defined $isis{$key}{AdminState} && $isis{$key}{AdminState} eq "enabled" && defined $isis{$key}{OperState} && defined $isis{$key}{NumUpAdj}){
-        if ($isis{$key}{OperState} ne "up"){
-           if ( $verbose ){ print "warning "; }
-           $isis_interface_errors++;
-           $statewarning = 1;
+         if ($isis{$key}{OperState} ne "up"){
+            $isis{$key}{error} = 1;
         } elsif ( $isis{$key}{OperState} eq "up" && $isis{$key}{NumUpAdj} ne "1" ){
-           #print "warning ";
-           $isis_interface_errors++;
-           $statewarning = 1;
+            $isis{$key}{error} = 1;
         } elsif ( $isis{$key}{OperState} eq "up" && $isis{$key}{NumUpAdj} eq "1" ){
-           #print "OK ";
+           $isis{$key}{error} = 0;
         } else {  print "unknown "; }
         if ( $verbose ) { print "$key $isis{$key}{ifAdminStatus} $isis{$key}{AdminState} $isis{$key}{OperState} $isis{$key}{NumUpAdj}\n"; }
     }
-    if ( $isis_error >= 1){
+    if ( $isis{$key}{error} = 1){
         if ( $verbose ) { print "key=$key ifDescr=*$isis{$key}{ifDescr}* ifName=*$isis{$key}{ifName}* ifAlias=*$isis{$key}{ifAlias}*\n"; } 
         if (defined $isis{$key}{ifDescr} && $isis{$key}{ifDescr} ne "") { $estring .= "*$isis{$key}{ifDescr}* "; }
         if (defined $isis{$key}{ifName} && $isis{$key}{ifName} ne "") { $estring .=  "*$isis{$key}{ifName}* "; }
