@@ -160,14 +160,14 @@ if ( $verbose ) {
 # check to see if isis globally enabled
 my $isisSysAdminState =`$snmpget 1.3.6.1.3.37.1.1.1.8.0`;
 $isisSysAdminState = &fix_snmp_result($isisSysAdminState);
-if ( $isisSysAdminState eq 2 ) { 
+if ( $isisSysAdminState eq 1 ) { 
    # Global has to store isis interfaces
    &get_isis_interfaces;
    my %isis;
    print "OK: IS-IS globally enabled\n"; exit $STATE_OK; 
 }
-:
-    # Get list of MLTs
+
+# Get list of MLTs
     my %rcMltTable;
     my @rcMltTable = `$snmpwalk 1.3.6.1.4.1.2272.1.17.10.1.1`;
     # Check to see if MLT exist
