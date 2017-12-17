@@ -158,7 +158,7 @@ for my $key ( sort {$a<=>$b} keys %isis) {
         } else {  print "unknown "; }
         if ( $verbose ) { print "$key $isis{$key}{ifAdminStatus} $isis{$key}{AdminState} $isis{$key}{OperState} $isis{$key}{NumUpAdj}\n"; }
     }
-    if ( $isis{$key}{error} = 1){
+    if ( $isis{$key}{error} == 1){
         if ( $verbose ) { print "key=$key ifDescr=*$isis{$key}{ifDescr}* ifName=*$isis{$key}{ifName}* ifAlias=*$isis{$key}{ifAlias}*\n"; } 
         if (defined $isis{$key}{ifDescr} && $isis{$key}{ifDescr} ne "") { $estring .= "*$isis{$key}{ifDescr}* "; }
         if (defined $isis{$key}{ifName} && $isis{$key}{ifName} ne "") { $estring .=  "*$isis{$key}{ifName}* "; }
