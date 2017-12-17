@@ -73,7 +73,6 @@
 #
 #snmpwalk -OenQ -v2c -c helpdesk 172.25.99.125 .1.3.6.1.4.1.2272.1.63.10.1.4
 
-
 use strict;
 use warnings;
 use Getopt::Std;
@@ -174,10 +173,10 @@ my %rcMltTable;
 my @rcMltTable = `$snmpwalk 1.3.6.1.4.1.2272.1.17.10.1.1`;
 # Check to see if MLT exist
 if ( grep( ! /No Such/, @rcMltTable ) ) { 
-    print "MLT(s) exist\n";
+    print "OK: MLT(s) exist\n";
     &get_mlt;
 } else { 
-    print "No MLT(s)\n";
+    print "OK: NO MLT(s)\n";
 }
 
 # Get ifDescr, ifName, ifAlias, ifAdminStatus for IS-IS interfaces
@@ -282,6 +281,7 @@ else {
      print "$rstring";
      exit $STATE_OK;  
 }
+
 sub get_mlt {
     if ( $verbose ) { print "rcMltId\n@rcMltTable\n"; }
     if ( @rcMltTable ) {
