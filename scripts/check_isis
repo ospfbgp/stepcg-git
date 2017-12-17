@@ -1,0 +1,438 @@
+#!/usr/bin/perl -w
+# Author : Daniel Cox (danielcoxman@gmail.com)
+# Date : 6/25/2014
+# version 1.0
+# Check IS-IS interface status on erk8k, vsp9k
+
+#interface mibs for vsp7k IS-IS
+#1.3.6.1.4.1.2272.1.63.2.1
+#1.3.6.1.2.1.138.1.3.2
+#adjacency mibs for vsp7k IS-IS
+#1.3.6.1.4.1.2272.1.63.10.1
+#1.3.6.1.2.1.138.1.6.1
+
+#isisCircIfIndex = 1.3.6.1.3.37.1.3.2.1.2 
+#rcIsisCircuitType = 1.3.6.1.4.1.2272.1.63.2.1.2
+#rcIsisCircuitOperState = 1.3.6.1.4.1.2272.1.63.2.1.8
+#rcPortName = 1.3.6.1.4.1.2272.1.4.10.1.1.35
+#rcMltName = 1.3.6.1.4.1.2272.1.17.10.1.2
+#
+#isisCircIfIndex OBJECT-TYPE
+#        SYNTAX InterfaceIndex
+#        MAX-ACCESS read-create
+#        STATUS current
+#        DESCRIPTION
+#            "The value of ifIndex for the interface to which this
+#             circuit corresponds.   This object cannot be modified
+#             after creation."
+#    ::= { isisCircEntry 2 }
+#rcIsisCircuitType    OBJECT-TYPE
+#        SYNTAX        INTEGER {
+#                          bcast(1),
+#                          ptpt(2),
+#                          passive(3)
+#                      }
+#        MAX-ACCESS    read-write
+#        STATUS        current
+#        DESCRIPTION   "ISIS circuit type this is an extention to
+#                       ISIS circuit table, this was required a
+#                       standard MIB circuit type does not support
+#                       passive type"
+#            DEFVAL        { bcast }
+#        ::= { rcIsisCircuitEntry 2 }
+#rcIsisCircuitOperState     OBJECT-TYPE
+#        SYNTAX        INTEGER {
+#                        unknown(0),
+#                        up(1),    
+#                        down(2)      
+#                      }
+#        MAX-ACCESS    read-only 
+#        STATUS        current
+#        DESCRIPTION   "This variable tells the operating state of circ"
+#        ::= { rcIsisCircuitEntry 8 }
+#rcIsisAdjHostName OBJECT-TYPE
+##        SYNTAX     OCTET STRING (SIZE (0..255))
+#        MAX-ACCESS read-only
+#        STATUS     current
+#        DESCRIPTION   
+#            "The hostname listed in LSP, or the system name if host 
+#             name is not configured."
+#        ::= { rcIsisAdjEntry 3 }
+#
+#rcIsisAdjIfIndex OBJECT-TYPE
+#        SYNTAX InterfaceIndex
+#        MAX-ACCESS read-only
+#        STATUS current
+#        DESCRIPTION
+#            "The value of ifIndex for the interface to which this
+#             circuit corresponds."
+#    ::= { rcIsisAdjEntry 4 }
+#[coxd@wangraph ~/ers8kmibs/mibs]$ snmpwalk -OenQ -v2c -c helpdesk 172.24.7.5 1.3.6.1.4.1.2272.1.63.10.1
+#.1.3.6.1.4.1.2272.1.63.10.1.3.1.1 = "ksp12.can2"
+#.1.3.6.1.4.1.2272.1.63.10.1.4.1.1 = 238
+#
+#snmpwalk -OenQ -v2c -c helpdesk 172.25.99.125 .1.3.6.1.4.1.2272.1.63.10.1.4
+
+
+use strict;
+use warnings;
+use Getopt::Std;
+
+# initialize some variables
+use vars qw( %options $host $community $verbose);
+
+# setup variable for state of checks and some strings to print 
+my $STATE_CRITICAL = 2;
+my $STATE_WARNING = 1;
+my $STATE_UNKNOWN = 3;
+my $STATE_OK = 0;
+my $result;
+my $statewarning;
+my $statecritical;
+my $rstring = "";
+my $estring = "";
+my $wstring = "";
+my $cstring = "CRITICAL";
+my $oid;
+
+# get options -v -H and -C. -H and -C require a value
+getopts( 'vH:C:', \%options );
+
+&print_usage() if ( ! $options{ H } );
+&print_usage() if ( ! $options{ C } );
+$host = $options{ H };
+$community = $options{ C };
+$verbose = $options{ v };
+
+# print usage if I do not get options I need
+sub print_usage {
+    print "Usage: $0 -H <ip or hostname> -C community [-v verbose]\n";
+    exit $STATE_UNKNOWN;
+}
+
+### set string for snmpget and snmpwalk commands with options
+my $snmpget  = "snmpget -OenQ -v2c -c $community $host" ;
+my $snmpget2  = "snmpget -Oen -v2c -c $community $host" ;
+my $snmpwalk = "snmpwalk -OenQ -v2c -c $community $host";
+
+### snmpget to see what kind of switch it is
+my $cmd;
+if ( $verbose ) { 
+    $cmd ="$snmpget .1.3.6.1.2.1.1.1.0 .1.3.6.1.2.1.1.2.0 .1.3.6.1.2.1.1.3.0 .1.3.6.1.2.1.1.5.0";
+    my @sysinfo =`$cmd`; if ($?) { print "Error command failed: $cmd\n"; exit $STATE_UNKNOWN; }
+    my $sysDescr = &fix_snmp_result($sysinfo[0]);
+    my $sysObjectID = &fix_snmp_result($sysinfo[1]);
+    my $sysUpTime = &fix_snmp_result($sysinfo[2]);
+    my $sysName = &fix_snmp_result($sysinfo[3]);
+    print "sysDescr *$sysDescr*\n"; 
+    print "sysObjectID *$sysObjectID*\n";
+    print "sysUpTime *$sysUpTime*\n";
+    print "sysName *$sysName*\n";
+}
+
+# my @ifName = `$snmpwalk 1.3.6.1.2.1.31.1.1.1.1`;
+# my @ifAdminStatus = `$snmpwalk 1.3.6.1.2.1.2.2.1.7`;
+# rcMltName 1.3.6.1.4.1.2272.1.17.10.1.2
+#isisCircIfIndex = 1.3.6.1.3.37.1.3.2.1.2
+#rcIsisCircuitType = 1.3.6.1.4.1.2272.1.63.2.1.2
+#rcIsisCircuitOperState = 1.3.6.1.4.1.2272.1.63.2.1.8 2 = disabled 1 = enabled
+#1.3.6.1.3.37.1.1.1.8      isisSysAdminState
+#1.3.6.1.3.37.1.3.2        isisCircTable                     NODE
+#1.3.6.1.3.37.1.3.2.1      isisCircEntry                     NODE
+#1.3.6.1.3.37.1.3.2.1.1    isisCircIndex                     LEAF  IndexInteger
+#1.3.6.1.3.37.1.3.2.1.2    isisCircIfIndex                   LEAF  InterfaceIndex
+#1.3.6.1.3.37.1.3.2.1.3    isisCircAdminState                LEAF  AdminState
+#1.3.6.1.3.37.1.3.2.1.4    isisCircExistState                LEAF  RowStatus
+#1.3.6.1.3.37.1.3.2.1.5    isisCircType                      LEAF  INTEGER
+#1.3.6.1.3.37.1.3.2.1.6    isisCircExtDomain                 LEAF  TruthValue
+#1.3.6.1.3.37.1.3.2.1.7    isisCircLevelType                 LEAF  IsisLevel
+#1.3.6.1.3.37.1.3.2.1.8    isisCircPassiveCircuit            LEAF  TruthValue
+#1.3.6.1.3.37.1.3.2.1.9    isisCircMeshGroupEnabled          LEAF  INTEGER
+#1.3.6.1.3.37.1.3.2.1.10   isisCircMeshGroup                 LEAF  Unsigned32
+#1.3.6.1.3.37.1.3.2.1.11   isisCircSmallHellos               LEAF  TruthValue
+#1.3.6.1.3.37.1.3.2.1.12   isisCircLastUpTime                LEAF  TimeStamp
+#1.3.6.1.3.37.1.3.2.1.13   isisCirc3WayEnabled               LEAF  TruthValue
+#1.3.6.1.3.37.1.3.2.1.14   isisCircExtendedCircID            LEAF  Unsigned32
+#rcIsisLocalInterface 1.3.6.1.4.1.2272.1.63.9.7.0 
+# mibs for ers8k, vsp4k, vsp9k
+#my @rcIsisCircuitType      = `$snmpwalk 1.3.6.1.4.1.2272.1.63.2.1.2`;
+
+# check to see if vlacp globally enabled
+my $isisSysAdminState =`$snmpget 1.3.6.1.3.37.1.1.1.8.0`;
+$isisSysAdminState = &fix_snmp_result($isisSysAdminState);
+if ( $isisSysAdminState eq 2 ) { 
+   print "OK: IS-IS not globally enabled\n"; exit $STATE_OK; }
+
+    # Get isis information for all interfaces
+    my %isis;
+    my @isisCircIfIndex = `$snmpwalk 1.3.6.1.3.37.1.3.2.1.2`;
+    if ( $verbose ) { print "isisCircIfIndex\n@isisCircIfIndex\n"; }
+    if ( @isisCircIfIndex ) {
+        foreach (@isisCircIfIndex) {
+            my ($index, $result) = &chopit($_);
+            $isis{$index}{IfIndex} = $result;
+            if ( $verbose ) { print "IfIndex=$isis{$index}{IfIndex}\n"; }
+        }
+        if ( $verbose ) { print "\n"; }
+    }
+    my @isisCircAdminState = `$snmpwalk 1.3.6.1.3.37.1.3.2.1.3`;
+    if ( $verbose ) { print "isisCircAdminState\n@isisCircAdminState\n"; }
+    if ( @isisCircAdminState ) {
+        foreach (@isisCircAdminState) {
+        my ($index, $result) = &chopit($_);
+        $isis{$index}{AdminState} = $result;
+            if ($result == 0 ) { $isis{$index}{AdminState} = "unknown";}
+            elsif ($result == 1 ) { $isis{$index}{AdminState} = "enabled";}
+            elsif ($result == 2 ) { $isis{$index}{AdminState} = "disabled";}
+                if ( $verbose ) { print "AdminState=$isis{$index}{AdminState}\n"; }
+            }
+        if ( $verbose ) { print "\n"; }
+    }
+    my @isisCircType = `$snmpwalk 1.3.6.1.3.37.1.3.2.1.5`;
+    if ( $verbose ) { print "isisCircType\n@isisCircType\n"; }
+    if ( @isisCircType ) {
+        foreach (@isisCircType) {
+            my ($index, $result) = &chopit($_);
+            $isis{$index}{Type} = $result;
+            if ($result == 1 ) { $isis{$index}{Type} = "bcast";}
+            elsif ($result == 2 ) { $isis{$index}{Type} = "ptpt";}
+            elsif ($result == 3 ) { $isis{$index}{Type} = "staticIn";}
+            elsif ($result == 4 ) { $isis{$index}{Type} = "staticOut";}
+            elsif ($result == 5 ) { $isis{$index}{Type} = "dA";}
+            else  { $isis{$index}{Type} = "unknown";}
+            if ( $verbose ) { print "Type=$isis{$index}{Type}\n"; }
+       }
+            if ( $verbose ) { print "\n"; }
+    }
+    my @rcIsisCircuitOperState = `$snmpwalk 1.3.6.1.4.1.2272.1.63.2.1.8`;
+    if ( $verbose ) { print "rcIsisCircuitOperState\n@rcIsisCircuitOperState\n"; }
+    if ( @rcIsisCircuitOperState ) {
+       foreach (@rcIsisCircuitOperState) {
+           my ($index, $result) = &chopit($_);
+           $isis{$index}{OperState} = $result;
+           if ($result == 0 ) { $isis{$index}{OperState} = "unknown";}
+           elsif ($result == 1 ) { $isis{$index}{OperState} = "up";}
+           elsif ($result == 2 ) { $isis{$index}{OperState} = "down";}
+           else  { $isis{$index}{OperState} = "unknown";}
+           if ( $verbose ) { print "OperState=$isis{$index}{OperState}\n"; }
+       }
+           if ( $verbose ) { print "\n"; }
+    }
+    my @rcIsisCircuitNumAdj = `$snmpwalk 1.3.6.1.4.1.2272.1.63.2.1.9`;
+    if ( $verbose ) { print "rcIsisCircuitNumAdj\n@rcIsisCircuitNumAdj\n"; }
+    if ( @rcIsisCircuitNumAdj ) {
+       foreach (@rcIsisCircuitNumAdj) {
+           my ($index, $result) = &chopit($_);
+           $isis{$index}{NumAdj} = $result;
+           if ( $verbose ) { print "NumAdj=$isis{$index}{NumAdj}\n"; }
+       }
+       if ( $verbose ) { print "\n"; }
+    }
+    my @rcIsisCircuitNumUpAdj  = `$snmpwalk 1.3.6.1.4.1.2272.1.63.2.1.10`;
+    if ( $verbose ) { print "rcIsisCircuitNumUpAdj\n@rcIsisCircuitNumUpAdj\n"; }
+    if ( @rcIsisCircuitNumUpAdj ) {
+       foreach (@rcIsisCircuitNumUpAdj) {
+           my ($index, $result) = &chopit($_);
+           $isis{$index}{NumUpAdj} = $result;
+           if ( $verbose ) { print "NumUpAdj=$isis{$index}{NumUpAdj}\n"; }
+       }
+       if ( $verbose ) { print "\n"; }
+    }
+    
+    # Get list of MLTs
+    my %rcMltTable;
+    my @rcMltTable = `$snmpwalk 1.3.6.1.4.1.2272.1.17.10.1.1`;
+    # Check to see if MLT exist
+    if ( grep( ! /No Such/, @rcMltTable ) ) { 
+        print "MLT(s) exist\n";
+        if ( $verbose ) { print "rcMltId\n@rcMltTable\n"; }
+        if ( @rcMltTable ) {
+        foreach (@rcMltTable) {
+                my ($index, $result) = &chopit($_);
+                $rcMltTable{$index}{rcMltId} = $result;
+                if ( $verbose ) { print "rcMltId=$rcMltTable{$index}{rcMltId}\n"; }
+            }
+            if ( $verbose ) { print "\n"; }
+        }
+        # Get names of MLTs
+        @rcMltTable = `$snmpwalk 1.3.6.1.4.1.2272.1.17.10.1.2`;
+        if ( $verbose ) { print "rcMltName\n@rcMltTable\n"; }
+        if ( @rcMltTable ) {
+            foreach (@rcMltTable) {
+                my ($index, $result) = &chopit($_);
+                $rcMltTable{$index}{rcMltName} = $result;
+                if ( $verbose ) { print "rcMltName=$rcMltTable{$index}{rcMltName}\n"; }
+            }
+            if ( $verbose ) { print "\n"; }
+        }
+        # Get IfIndex number of each MLT
+        @rcMltTable = `$snmpwalk 1.3.6.1.4.1.2272.1.17.10.1.11`;
+        if ( $verbose ) { print "rcMltIfIndex\n@rcMltTable\n"; }
+        if ( @rcMltTable ) {
+            foreach (@rcMltTable) {
+                my ($index, $result) = &chopit($_);
+                $rcMltTable{$index}{rcMltIfIndex} = $result;
+                if ( $verbose ) { print "rcMltIfIndex=$rcMltTable{$index}{rcMltIfIndex}\n"; }
+            }
+            if ( $verbose ) { print "\n"; }
+        }
+
+        print "start key for mlt\n";
+        for my $key ( sort {$a<=>$b} keys %rcMltTable){
+             if ( $verbose ) { print "rcMltTable key=$key\n"; }
+             if ( defined $rcMltTable{$key}{rcMltId}){
+                 print "rcMltTable key=$key rcMltId=$rcMltTable{$key}{rcMltId}\n"; 
+                 print "rcMltTable key=$key rcMltName=$rcMltTable{$key}{rcMltName}\n"; 
+                 print "rcMltTable key=$key rcMltIfIndex=$rcMltTable{$key}{rcMltIfIndex}\n"; 
+             }
+        }
+    print "end key for mlt\n";
+    }
+    else { 
+        print "No MLT(s)\n";
+}
+
+# Get ifDescr, ifName, ifAlias, ifAdminStatus for IS-IS interfaces
+for my $key ( sort {$a<=>$b} keys %isis){
+      my $command;
+      my $i = $isis{$key}{IfIndex};
+      $command ="$snmpget 1.3.6.1.2.1.2.2.1.2.$i";
+      my $result =`$command`; if ($?) { print "Error command failed: $cmd\n"; exit $STATE_UNKNOWN; }
+      $isis{$key}{ifDescr} = &fix_snmp_result($result);
+
+      $command ="$snmpget 1.3.6.1.2.1.31.1.1.1.1.$i";
+      $result =`$command`; if ($?) { print "Error command failed: $cmd\n"; exit $STATE_UNKNOWN; }
+      $isis{$key}{ifName} = &fix_snmp_result($result);
+
+      $command ="$snmpget 1.3.6.1.2.1.31.1.1.1.18.$i";
+      $result =`$command`; if ($?) { print "Error command failed: $cmd\n"; exit $STATE_UNKNOWN; }
+      $isis{$key}{ifAlias} = &fix_snmp_result($result);
+
+      $command ="$snmpget 1.3.6.1.2.1.2.2.1.7.$i";
+      $result =`$command`; if ($?) { print "Error command failed: $cmd\n"; exit $STATE_UNKNOWN; }
+      $isis{$key}{ifAdminStatus} = &fix_snmp_result($result);
+
+      if ( $verbose ) { print "$i ifDescr=*$isis{$key}{ifDescr}* ifName=*$isis{$key}{ifName}* ifAlias=*$isis{$key}{ifAlias}*\n"; } 
+}
+
+# setup some counters for IS-IS interface error checking
+my $isis_interfaces=0;
+my $isis_interface_errors=0;
+my $isis_error=0;
+
+# check IS-IS interfaces for errors
+for my $key ( sort {$a<=>$b} keys %isis) {
+    $isis_error=0;
+    if (defined $isis{$key}{ifAdminStatus} && $isis{$key}{ifAdminStatus} eq "1" && defined $isis{$key}{AdminState} && $isis{$key}{AdminState} eq "enabled" && defined $isis{$key}{OperState} && defined $isis{$key}{NumUpAdj}){
+        if ($isis{$key}{OperState} ne "up"){
+            if ( $verbose ){ print "warning "; }
+            $statewarning = 1;
+            $isis_interface_errors++;
+            $isis_error = 1;
+        } elsif ( $isis{$key}{OperState} eq "up" && $isis{$key}{NumUpAdj} ne "1" ){
+            if ( $verbose ){ print "warning "; }
+            $statewarning = 1;
+            $isis_interface_errors++;
+            $isis_error = 1;
+        } elsif ( $isis{$key}{OperState} eq "up" && $isis{$key}{NumUpAdj} eq "1" ){
+           #print "OK ";
+        } else {  print "unknown "; }
+        if ( $verbose ) { print "$key $isis{$key}{ifAdminStatus} $isis{$key}{AdminState} $isis{$key}{OperState} $isis{$key}{NumUpAdj}\n"; }
+    }
+    # process logical interfaces
+    if (defined $isis{$key}{ifAdminStatus} && $isis{$key}{ifAdminStatus} eq "null" && defined $isis{$key}{AdminState} && $isis{$key}{AdminState} eq "enabled" && defined $isis{$key}{OperState} && defined $isis{$key}{NumUpAdj}){
+        if ($isis{$key}{OperState} ne "up"){
+           if ( $verbose ){ print "warning "; }
+           $isis_interface_errors++;
+           $statewarning = 1;
+        } elsif ( $isis{$key}{OperState} eq "up" && $isis{$key}{NumUpAdj} ne "1" ){
+           #print "warning ";
+           $isis_interface_errors++;
+           $statewarning = 1;
+        } elsif ( $isis{$key}{OperState} eq "up" && $isis{$key}{NumUpAdj} eq "1" ){
+           #print "OK ";
+        } else {  print "unknown "; }
+        if ( $verbose ) { print "$key $isis{$key}{ifAdminStatus} $isis{$key}{AdminState} $isis{$key}{OperState} $isis{$key}{NumUpAdj}\n"; }
+    }
+    if ( $isis_error >= 1){
+        if ( $verbose ) { print "key=$key ifDescr=*$isis{$key}{ifDescr}* ifName=*$isis{$key}{ifName}* ifAlias=*$isis{$key}{ifAlias}*\n"; } 
+        if (defined $isis{$key}{ifDescr} && $isis{$key}{ifDescr} ne "") { $estring .= "*$isis{$key}{ifDescr}* "; }
+        if (defined $isis{$key}{ifName} && $isis{$key}{ifName} ne "") { $estring .=  "*$isis{$key}{ifName}* "; }
+        if (defined $isis{$key}{ifAlias} && $isis{$key}{ifAlias} ne "" ) { $estring .= "*$isis{$key}{ifAlias}* "; }
+        $estring =~ s/\s+$//; #remove trailing spaces
+        $estring .= "<br>\n";
+    }
+    $isis_interfaces++;
+}
+
+if ($isis_interface_errors == 0){
+    $rstring .= "OK IS-IS: $isis_interfaces interface(s) $isis_interface_errors errors\n";
+} else {
+    $rstring .= "ERROR IS-IS: $isis_interfaces interface(s) $isis_interface_errors error(s)<br>\n";
+}
+
+### Print results of concatenation of strings
+if (defined $statecritical && defined $statewarning) {  
+     print "$cstring $wstring\n";
+     print "$rstring";
+     print "$estring";
+     exit $STATE_CRITICAL; 
+} 
+elsif (defined $statecritical) {  
+     print "$cstring\n";
+     print "$rstring";
+     print "$estring";
+     exit $STATE_CRITICAL; 
+} 
+elsif (defined $statewarning) {  
+     print "$wstring";
+     print "$rstring";
+     print "$estring";
+     exit $STATE_WARNING; 
+} 
+else { 
+     print "$rstring";
+     exit $STATE_OK;
+}
+
+### Clean up string, split on = and return just value
+sub fix_snmp_result {
+     chomp $_[0];
+     $_[0] =~ tr/"//d;
+     # if ( $verbose ) { print "beforefix *$_[0]*\n"; }
+     $_[0] =~ s/\s+/ /g; #remove multiple whitespace with single space
+     $_[0] =~ s/Avaya//; #make sysDescr shorter and more readable
+     $_[0] =~ s/Ethernet Routing Switch/ERS/; #make sysDescr shorter and more readable
+     $_[0] =~ s/Virtual Services Platform/VSP/; #make sysDescr shorter and more readable
+     $_[0] =~ s/^\s+//; #remove leading spaces
+     $_[0] =~ s/\s+$//; #remove trailing spaces
+     my @a = split (/=/,$_[0]);
+     $a[0] =~ s/^\s+//; #remove leading spaces
+     $a[0] =~ s/\s+$//; #remove trailing spaces
+     if (defined $a[1]){
+     $a[1] =~ s/^\s+//; #remove leading spaces
+     $a[1] =~ s/\s+$//; #remove trailing spaces
+     if ( $verbose ) { print "return *$a[1]*\n"; }
+         return $a[1];
+     } else {
+         return "";
+     }
+}
+
+sub chopit {
+     chomp $_[0];
+     # if ( $verbose ) { print "beforefix *$_[0]*\n"; }
+     $_[0] =~ s/\s+/ /g; #remove multiple whitespace with single space
+     $_[0] =~ s/Ethernet Routing Switch/ERS/; #make sysDescr shorter and more readable
+     $_[0] =~ s/Virtual Services Platform/VSP/; #make sysDescr shorter and more readable
+     $_[0] =~ s/^\s+//; #remove leading spaces
+     $_[0] =~ s/\s+$//; #remove trailing spaces
+     my @a = split (/=/,$_[0]);
+     $a[0] =~ s/^\s+//; #remove leading spaces
+     $a[0] =~ s/\s+$//; #remove trailing spaces
+     my @t = split(/\./, $a[0]);
+     $a[1] =~ s/^\s+//; #remove leading spaces
+     $a[1] =~ s/\s+$//; #remove trailing spaces
+     # print "$_[0] index=$t[-1] result=$a[1]\n";
+     return ("$t[-1]", "$a[1]");
+}
