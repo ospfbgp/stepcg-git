@@ -1,0 +1,342 @@
+
+#!/usr/bin/perl -w
+# Author : Daniel Cox (danielcoxman@gmail.com)
+# Date : 12/14/2017
+# version 2.0
+# The port must be admin up for it to check vlacp status
+# Tested on the switches below, it should work with other switches, had issues with ers16k
+# ers35k v5.1.2.005 
+# ers5k v6.2.8.029 
+# ers8k v5.1.7.0,v7.2.11.0
+# vsp4k v4.0.0.1,v4.0.0.2
+# vsp7k v10.3.0.011
+# vsp9k v3.4.1.0
+# 6/25/2014 added some more coding for ifName and ifAlias to actually see what is down
+# 9/10/2014 added IfDescr
+# 10/15/2014 changing the code to more efficent. Only pull ifName/ifDescr/ifAlias if the interface has vlacp
+#            this really decreased the time when polling a switch with a large number of interfaces.  I now
+#            use an snmpget instead of snmpwalk.  Just get what we need and thats it 
+# 10/24/2014 removed sysUpTime because it caused formating errors when email was sent via nagios
+#            Also changed the formatting of the wstring and rstring to be shorter/readable
+# 10/27/2014 add 2 spaces at the beginning of rstring for email formatting for outlook because it ignores the newline
+
+
+
+#############################################################
+#rcLacpGlobalVlacpEnable = 1.3.6.1.4.1.2272.1.53.1.7.0
+#rcPortVLacpAdminEnable = 1.3.6.1.4.1.2272.1.4.10.5.1.1
+#rcPortVLacpOperEnable = 1.3.6.1.4.1.2272.1.4.10.5.1.2
+#rcPortVLacpPortState = 1.3.6.1.4.1.2272.1.4.10.5.1.9
+#rcPortName = 1.3.6.1.4.1.2272.1.4.10.1.1.35
+#
+#rcPortVLacpAdminEnable OBJECT-TYPE
+#        SYNTAX        TruthValue
+#        MAX-ACCESS    read-write
+#        STATUS        current
+#        DESCRIPTION   "Administratively enable/disable Virtual LACP on a port"
+#        DEFVAL        { false }
+#        ::= { rcPortVLacpEntry 1 }
+#
+#rcPortVLacpOperEnable OBJECT-TYPE
+#        SYNTAX        TruthValue
+#        MAX-ACCESS    read-only
+#        STATUS        current
+#        DESCRIPTION   "Indicates if Virtual LACP is operationally enabled or
+#                       disabled on a port"
+#        ::= { rcPortVLacpEntry 2 }
+#rcPortVLacpPortState OBJECT-TYPE
+#        SYNTAX         INTEGER {  
+#                          up(1),
+#                          down(2)       
+#                       }
+#        MAX-ACCESS     read-only    
+#        STATUS         current
+#        DESCRIPTION    "Display the Vlacp Port State."
+#        ::= { rcPortVLacpEntry 9 }
+
+use strict;
+use warnings;
+use Getopt::Std;
+
+# initialize some variables
+use vars qw( %options $host $community $verbose);
+
+# setup variable for state of checks and some strings to print 
+my $STATE_CRITICAL = 2;
+my $STATE_WARNING = 1;
+my $STATE_UNKNOWN = 3;
+my $STATE_OK = 0;
+my $result;
+my $statewarning;
+my $statecritical;
+my $rstring = "";
+my $estring = "";
+my $cstring = "CRITICAL";
+my $oid;
+
+# get options -v -H and -C. -H and -C require a value
+getopts( 'vH:C:', \%options );
+
+&print_usage() if ( ! $options{ H } );
+&print_usage() if ( ! $options{ C } );
+$host = $options{ H };
+$community = $options{ C };
+$verbose = $options{ v };
+
+# print usage if I do not get options I need
+sub print_usage {
+    print "Usage: $0 -H <ip or hostname> -C community [-v verbose]\n";
+    exit $STATE_UNKNOWN;
+}
+
+### set string for snmpget and snmpwalk commands with options
+my $snmpget  = "snmpget -OenQ -v2c -c $community $host" ;
+my $snmpget2  = "snmpget -Oen -v2c -c $community $host" ;
+my $snmpwalk = "snmpwalk -OenQ -v2c -c $community $host";
+
+### snmpget to see what kind of switch it is
+my $cmd ="$snmpget .1.3.6.1.2.1.1.1.0 .1.3.6.1.2.1.1.2.0 .1.3.6.1.2.1.1.3.0 .1.3.6.1.2.1.1.5.0";
+my @sysinfo =`$cmd`; if ($?) { print "Error command failed: $cmd\n"; exit $STATE_UNKNOWN; }
+my $sysDescr = &fix_snmp_result($sysinfo[0]);
+my $sysObjectID = &fix_snmp_result($sysinfo[1]);
+my $sysUpTime = &fix_snmp_result($sysinfo[2]);
+my $sysName = &fix_snmp_result($sysinfo[3]);
+
+if ( $verbose ) { print "sysDescr *$sysDescr*\n"; }
+if ( $verbose ) { print "sysObjectID *$sysObjectID*\n"; }
+if ( $verbose ) { print "sysUpTime *$sysUpTime*\n"; }
+if ( $verbose ) { print "sysName *$sysName*\n"; }
+
+#$rstring .= "  sysName:$sysName\n";
+#$rstring .= "  sysDescr:$sysDescr\n";
+#$rstring .= "  sysObjectID:$sysObjectID\n";
+#$rstring .= "  sysUpTime:$sysUpTime\n";
+
+my @lastoid = split(/\./, $sysObjectID);
+my $ifDescrflag;
+#print "lastoid $lastoid[-1]\n";
+if ($sysObjectID =~ ".1.3.6.1.4.1.2272" && $lastoid[-1] < 200){
+  $rstring .= "  $lastoid[-1] older ers8k/ers16k use ifDescr\n";
+  $ifDescrflag = 1;
+}
+
+# check to see if vlacp globally enabled
+my $rcLacpGlobalVlacpEnable =`$snmpget 1.3.6.1.4.1.2272.1.53.1.7.0`;
+$rcLacpGlobalVlacpEnable = &fix_snmp_result($rcLacpGlobalVlacpEnable);
+if ( $rcLacpGlobalVlacpEnable eq 2 ) { print "OK: vlacp not globally enabled\n"; exit $STATE_OK; }
+
+#rcPortVLacpAdminEnable  unknown(1) empty(2) up(3) down(4)
+my @ifAdminStatus = `$snmpwalk 1.3.6.1.2.1.2.2.1.7`;
+my @rcPortVLacpAdminEnable = `$snmpwalk 1.3.6.1.4.1.2272.1.4.10.5.1.1`;
+
+# Check to see if VLACP mib exist
+if ( grep( /No Such/, @rcPortVLacpAdminEnable ) ) { print "OK: No vlacp interfaces\n"; exit $STATE_OK; }
+# continue getting vlacp values
+my @rcPortVLacpOperEnable = `$snmpwalk 1.3.6.1.4.1.2272.1.4.10.5.1.2`;
+my @rcPortVLacpPortState = `$snmpwalk 1.3.6.1.4.1.2272.1.4.10.5.1.9`;
+if ( $verbose ) { print "ifAdminStatus @ifAdminStatus\n"; }
+if ( $verbose ) { print "rcPortVLacpAdminEnable @rcPortVLacpAdminEnable\n"; }
+if ( $verbose ) { print "rcPortVLacpPortState @rcPortVLacpPortState\n"; }
+if ( $verbose ) { print "rcPortVLacpOperEnable @rcPortVLacpOperEnable\n"; }
+my %vlacph;
+if ( @rcPortVLacpAdminEnable ) {
+   foreach (@rcPortVLacpAdminEnable) {
+        $_ =~ s/^\s+//; #remove leading spaces
+        $_ =~ s/\s+$//; #remove trailing spaces
+        my @a = split (/=/,$_);
+        $a[0] =~ s/^\s+//; #remove leading spaces
+        $a[0] =~ s/\s+$//; #remove trailing spaces
+        if ($a[1]){
+         $a[1] =~ s/^\s+//; #remove leading spaces
+         $a[1] =~ s/\s+$//; #remove trailing spaces
+        }
+        my @t = split(/\./, $a[0]);
+        my $value;
+        if ($a[1] == 1){ $value = "enabled"; }
+        elsif ($a[1] == 2){ $value = "disabled"; }
+        else {$value = "unknown"; }
+        $vlacph{$t[-1]}{rcPortVLacpAdminEnable} = $value;
+    }
+}
+if ( @rcPortVLacpOperEnable ) {
+   foreach (@rcPortVLacpOperEnable) {
+        $_ =~ s/^\s+//; #remove leading spaces
+        $_ =~ s/\s+$//; #remove trailing spaces
+        my @a = split (/=/,$_);
+        $a[0] =~ s/^\s+//; #remove leading spaces
+        $a[0] =~ s/\s+$//; #remove trailing spaces
+        if ($a[1]){
+         $a[1] =~ s/^\s+//; #remove leading spaces
+         $a[1] =~ s/\s+$//; #remove trailing spaces
+        }
+        my @t = split(/\./, $a[0]);
+        my $value;
+        if ($a[1] == 1){ $value = "enabled"; }
+        elsif ($a[1] == 2){ $value = "disabled"; }
+        else {$value = "unknown"; }
+        $vlacph{$t[-1]}{rcPortVLacpOperEnable} = $value;
+   }
+}
+if ( @rcPortVLacpPortState ) {
+   foreach (@rcPortVLacpPortState) {
+        $_ =~ s/^\s+//; #remove leading spaces
+        $_ =~ s/\s+$//; #remove trailing spaces
+        my @a = split (/=/,$_);
+        $a[0] =~ s/^\s+//; #remove leading spaces
+        $a[0] =~ s/\s+$//; #remove trailing spaces
+        if ($a[1]){
+         $a[1] =~ s/^\s+//; #remove leading spaces
+         $a[1] =~ s/\s+$//; #remove trailing spaces
+        }
+        my @t = split(/\./, $a[0]);
+        my $value;
+        if ($a[1] == 1){ $value = "up"; }
+        elsif ($a[1] == 2){ $value = "down"; }
+        else {$value = "unknown"; }
+        $vlacph{$t[-1]}{rcPortVLacpPortState} = $value;
+   }
+}
+if ( @ifAdminStatus ) {
+   foreach (@ifAdminStatus) {
+        $_ =~ s/^\s+//; #remove leading spaces
+        $_ =~ s/\s+$//; #remove trailing spaces
+        my @a = split (/=/,$_);
+        $a[0] =~ s/^\s+//; #remove leading spaces
+        $a[0] =~ s/\s+$//; #remove trailing spaces
+        if ($a[1]){
+         $a[1] =~ s/^\s+//; #remove leading spaces
+         $a[1] =~ s/\s+$//; #remove trailing spaces
+        }
+        my @t = split(/\./, $a[0]);
+        my $value;
+        if ($a[1] == 1){ $value = "up"; }
+        elsif ($a[1] == 2){ $value = "down"; }
+        else {$value = "unknown"; }
+       if (defined $vlacph{$t[-1]}){
+          $vlacph{$t[-1]}{ifAdminStatus} = $value;
+       }
+   }
+}
+
+
+if ( $verbose ) { 
+   for my $key ( sort {$a<=>$b} keys %vlacph){
+      my $command;
+      $command ="$snmpget 1.3.6.1.2.1.2.2.1.2.$key";
+      my $result =`$command`; if ($?) { print "Error command failed: $cmd\n"; exit $STATE_UNKNOWN; }
+      $vlacph{$key}{ifDescr} = &fix_snmp_result($result);
+
+      $command ="$snmpget 1.3.6.1.2.1.31.1.1.1.1.$key";
+      $result =`$command`; if ($?) { print "Error command failed: $cmd\n"; exit $STATE_UNKNOWN; }
+      $vlacph{$key}{ifName} = &fix_snmp_result($result);
+
+      $command ="$snmpget 1.3.6.1.2.1.31.1.1.1.18.$key";
+      $result =`$command`; if ($?) { print "Error command failed: $cmd\n"; exit $STATE_UNKNOWN; }
+      $vlacph{$key}{ifAlias} = &fix_snmp_result($result);
+      if ( $verbose ) { print "key=$key ifDescr=*$vlacph{$key}{ifDescr}* ifName=*$vlacph{$key}{ifName}* ifAlias=*$vlacph{$key}{ifAlias}*\n"; } 
+   }
+}
+
+# if an issue the get ifDescr,ifName,ifAlias this helps with the amount of walks we do via snmp and makes it more efficent
+my $vlacp_interfaces=0;
+my $vlacp_issues=0;
+for my $key ( sort {$a<=>$b} keys %vlacph){
+    # no reason to snmpget ifDescr/ifName/ifAlias is vlacp is working on the port
+    if ($vlacph{$key}{ifAdminStatus} && $vlacph{$key}{ifAdminStatus} eq "up" && $vlacph{$key}{rcPortVLacpAdminEnable} eq "enabled" && $vlacph{$key}{rcPortVLacpPortState} ne "up"){ 
+
+      my $command;
+      $command ="$snmpget 1.3.6.1.2.1.2.2.1.2.$key";
+      my $result =`$command`; if ($?) { print "Error command failed: $cmd\n"; exit $STATE_UNKNOWN; }
+      $vlacph{$key}{ifDescr} = &fix_snmp_result($result);
+
+      $command ="$snmpget 1.3.6.1.2.1.31.1.1.1.1.$key";
+      $result =`$command`; if ($?) { print "Error command failed: $cmd\n"; exit $STATE_UNKNOWN; }
+      $vlacph{$key}{ifName} = &fix_snmp_result($result);
+
+      $command ="$snmpget 1.3.6.1.2.1.31.1.1.1.18.$key";
+      $result =`$command`; if ($?) { print "Error command failed: $cmd\n"; exit $STATE_UNKNOWN; }
+
+      $vlacph{$key}{ifAlias} = &fix_snmp_result($result);
+      if ( $verbose ) { print "key=$key ifDescr=*$vlacph{$key}{ifDescr}* ifName=*$vlacph{$key}{ifName}* ifAlias=*$vlacph{$key}{ifAlias}*\n"; } 
+      $vlacp_issues++; 
+
+    }
+    # count Vlacp interfaces
+    if (defined $vlacph{$key}{ifAdminStatus} && $vlacph{$key}{ifAdminStatus} eq "up" && $vlacph{$key}{rcPortVLacpAdminEnable} eq "enabled" ){ 
+      $vlacp_interfaces++; 
+    }
+}
+
+#$rstring .= "Vlacp interfaces operational=$vlacp_interfaces<br>\n";
+#$rstring .= "Vlacp interface errors=$vlacp_issues<br>\n";
+
+     if ($vlacp_issues==0){
+          $rstring .= "OK vlacp: $vlacp_interfaces interface(s) $vlacp_issues errors\n";
+     } else {
+          $rstring .= "ERROR vlacp: $vlacp_interfaces interface(s) $vlacp_issues error(s)<br>\n";
+     }
+
+# if port has ifAdminStatus defined and ifAdminStatus is up and vlacp admin enabled do some logic 
+for my $key ( sort {$a<=>$b} keys %vlacph){
+     if ($vlacph{$key}{ifAdminStatus} && $vlacph{$key}{ifAdminStatus} eq "up" && $vlacph{$key}{rcPortVLacpAdminEnable} eq "enabled" && $vlacph{$key}{rcPortVLacpPortState} ne "up"){ 
+          # vlacp error so set to warning level
+          $statewarning = 1;
+          if (defined $ifDescrflag && $ifDescrflag eq 1){
+               if ( $verbose ) { print "Error $key VLacpAdminEnable=$vlacph{$key}{rcPortVLacpAdminEnable} VLacpOperEnable=$vlacph{$key}{rcPortVLacpOperEnable} VLacpPortState=$vlacph{$key}{rcPortVLacpPortState} ifAdminStatus=$vlacph{$key}{ifAdminStatus}\n";}
+               if (defined $vlacph{$key}{ifDescr} && $vlacph{$key}{ifDescr} ne "") { $estring .= "$vlacph{$key}{ifDescr}\\"; }
+           } else {
+               if ( $verbose ) { print "Error $key VLacpAdminEnable=$vlacph{$key}{rcPortVLacpAdminEnable} VLacpOperEnable=$vlacph{$key}{rcPortVLacpOperEnable} VLacpPortState=$vlacph{$key}{rcPortVLacpPortState} ifAdminStatus=$vlacph{$key}{ifAdminStatus}\n";}
+               if (defined $vlacph{$key}{ifDescr} && $vlacph{$key}{ifDescr} ne "") { $estring .= "*$vlacph{$key}{ifDescr}* "; }
+               if (defined $vlacph{$key}{ifName} && $vlacph{$key}{ifName} ne "") { $estring .=  "*$vlacph{$key}{ifName}* "; }
+               if (defined $vlacph{$key}{ifAlias} && $vlacph{$key}{ifAlias} ne "" ) { $estring .= "*$vlacph{$key}{ifAlias}* "; }
+           }
+     $estring =~ s/\s+$//; #remove trailing spaces
+#     $estring .= " ifindex=$key";
+     $estring .= "<br>\n";
+    }
+}
+
+### Print results of concatenation of strings
+if (defined $statecritical && defined $statewarning) {  
+  print "$cstring\n";
+  print "$rstring";
+  exit $STATE_CRITICAL; 
+} 
+elsif (defined $statecritical) {  
+  print "$cstring\n";
+  print "$rstring";
+  exit $STATE_CRITICAL; 
+} 
+elsif (defined $statewarning) {  
+  print "$rstring";
+  print "$estring";
+  exit $STATE_WARNING; 
+} 
+else { 
+  print "$rstring";
+  exit $STATE_OK;
+}
+
+### Clean up string, split on = and return just value
+sub fix_snmp_result {
+        chomp $_[0];
+        $_[0] =~ tr/"//d;
+       # if ( $verbose ) { print "beforefix *$_[0]*\n"; }
+        $_[0] =~ s/\s+/ /g; #remove multiple whitespace with single space
+        $_[0] =~ s/Avaya//; #make sysDescr shorter and more readable
+        $_[0] =~ s/Ethernet Routing Switch/ERS/; #make sysDescr shorter and more readable
+        $_[0] =~ s/Virtual Services Platform/VSP/; #make sysDescr shorter and more readable
+        $_[0] =~ s/^\s+//; #remove leading spaces
+        $_[0] =~ s/\s+$//; #remove trailing spaces
+        my @a = split (/=/,$_[0]);
+        $a[0] =~ s/^\s+//; #remove leading spaces
+        $a[0] =~ s/\s+$//; #remove trailing spaces
+        if (defined $a[1]){
+          $a[1] =~ s/^\s+//; #remove leading spaces
+          $a[1] =~ s/\s+$//; #remove trailing spaces
+          if ( $verbose ) { print "return *$a[1]*\n"; }
+          return $a[1];
+        } else {
+          return "";
+        }
+}
