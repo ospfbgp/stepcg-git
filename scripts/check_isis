@@ -46,6 +46,7 @@ use vars qw( %options $host $community $verbose);
 my $STATE_WARNING = 1;
 my $STATE_UNKNOWN = 3;
 my $STATE_OK = 0;
+my $result;
 my $statewarning;
 my $rstring = "";
 my $estring = "";
@@ -161,8 +162,6 @@ else {
 sub check_isis_errors {
     # check IS-IS interfaces for errors
     # setup some counters for IS-IS interface error checking
-    my $isis_interfaces=0;
-    my $isis_interface_errors=0;
     for my $key ( sort {$a<=>$b} keys %isis) {
         if ( $verbose ) { print "processing key=$key IfIndex=$isis{$key}{IfIndex} AdminState=$isis{$key}{AdminState} "; } 
         if ( $verbose ) { print "Operstate=$isis{$key}{OperState} NumUpAdj=$isis{$key}{NumUpAdj}\n"; }
@@ -178,21 +177,16 @@ sub check_isis_errors {
             }
         }
         if ( defined $isis{$key}{error} && $isis{$key}{error} == 1){
-                $isis_interface_errors++;
             if ( $verbose ) { print "error key=$key IfIndex=$isis{$key}{IfIndex} AdminState=$isis{$key}{AdminState} "; }
             if ( $verbose ) { print "Operstate=$isis{$key}{OperState} NumUpAdj=$isis{$key}{NumUpAdj}\n"; }
         }
-        $isis_interfaces++;
-    }
-    if ($isis_interface_errors == 0){
-        $rstring .= "OK isis: $isis_interfaces interface(s) $isis_interface_errors errors\n";
-    } else {
-        $rstring .= "WARNING isis: $isis_interfaces interface(s) $isis_interface_errors error(s)<br>\n";
     }
 
+    my $isis_interfaces=0;
+    my $isis_interface_errors=0;
     for my $key ( sort {$a<=>$b} keys %isis) {
+        $isis_interfaces++;
         if ( defined $isis{$key}{error} && $isis{$key}{error} == 1){
-            $statewarning = 1;
             # Get ifDescr, ifName, ifAlias, ifAdminStatus for IS-IS interfaces
             my $i = $isis{$key}{IfIndex};
             my $command ="$snmpget 1.3.6.1.2.1.2.2.1.2.$i";
@@ -207,18 +201,27 @@ sub check_isis_errors {
             $command ="$snmpget 1.3.6.1.2.1.2.2.1.7.$i";
             $result =`$command`; if ($?) { print "Error command failed: $cmd\n"; exit $STATE_UNKNOWN; }
             $isis{$key}{ifAdminStatus} = &fix_snmp_result($result);
-            if ( $verbose ) { print "Error: key=$key IfIndex=$isis{$key}{IfIndex} ifDescr=*$isis{$key}{ifDescr}* ifName=*$isis{$key}{ifName}* ifAlias=*$isis{$key}{ifAlias}* "; } 
-            if ( $verbose ) { print "AdminState=$isis{$key}{AdminState} Operstate=$isis{$key}{OperState} NumUpAdj=$isis{$key}{NumUpAdj}\n"; }
-            if (defined $isis{$key}{ifDescr} && $isis{$key}{ifDescr} ne "") { $estring .= "interface *$isis{$key}{ifDescr}* "; }
-            #if (defined $isis{$key}{ifName} && $isis{$key}{ifName} ne "") { $estring .=  "*$isis{$key}{ifName}* "; }
-            if (defined $isis{$key}{ifAlias} && $isis{$key}{ifAlias} ne "" ) { $estring .= "*$isis{$key}{ifAlias}* "; }
-            if (defined $isis{$key}{InterfaceCircIndex} && $isis{$key}{InterfaceCircIndex} ne "" ) { $estring .= "logical-intf isis $isis{$key}{InterfaceCircIndex} "; }
-            if (defined $isis{$key}{LogicalInterfaceName} && $isis{$key}{LogicalInterfaceName} ne "" ) { $estring .= "$isis{$key}{LogicalInterfaceName} "; }
-            if (defined $isis{$key}{rcMltId} && $isis{$key}{rcMltId} ne "" ) { $estring .= "mlt $isis{$key}{rcMltId} "; }
-            if (defined $isis{$key}{rcMltName} && $isis{$key}{rcMltName} ne "" ) { $estring .= "$isis{$key}{rcMltName} "; }
-            $estring =~ s/\s+$//; #remove trailing spaces
-            $estring .= "<br>\n";
+            if ($isis{$key}{ifAdminStatus} ne 2){
+                $isis_interface_errors++;
+                $statewarning = 1;
+                if ( $verbose ) { print "Error: key=$key IfIndex=$isis{$key}{IfIndex} ifDescr=*$isis{$key}{ifDescr}* ifName=*$isis{$key}{ifName}* ifAlias=*$isis{$key}{ifAlias}* "; } 
+                if ( $verbose ) { print "AdminState=$isis{$key}{AdminState} Operstate=$isis{$key}{OperState} NumUpAdj=$isis{$key}{NumUpAdj}\n"; }
+                if (defined $isis{$key}{ifDescr} && $isis{$key}{ifDescr} ne "") { $estring .= "interface *$isis{$key}{ifDescr}* "; }
+                #if (defined $isis{$key}{ifName} && $isis{$key}{ifName} ne "") { $estring .=  "*$isis{$key}{ifName}* "; }
+                if (defined $isis{$key}{ifAlias} && $isis{$key}{ifAlias} ne "" ) { $estring .= "*$isis{$key}{ifAlias}* "; }
+                if (defined $isis{$key}{InterfaceCircIndex} && $isis{$key}{InterfaceCircIndex} ne "" ) { $estring .= "logical-intf isis $isis{$key}{InterfaceCircIndex} "; }
+                if (defined $isis{$key}{LogicalInterfaceName} && $isis{$key}{LogicalInterfaceName} ne "" ) { $estring .= "$isis{$key}{LogicalInterfaceName} "; }
+                if (defined $isis{$key}{rcMltId} && $isis{$key}{rcMltId} ne "" ) { $estring .= "mlt $isis{$key}{rcMltId} "; }
+                if (defined $isis{$key}{rcMltName} && $isis{$key}{rcMltName} ne "" ) { $estring .= "$isis{$key}{rcMltName} "; }
+                $estring =~ s/\s+$//; #remove trailing spaces
+                $estring .= "<br>\n";
+            }
         }
+    }
+    if ($isis_interface_errors == 0){
+        $rstring .= "OK isis: $isis_interfaces interface(s) $isis_interface_errors errors\n";
+    } else {
+        $rstring .= "WARNING isis: $isis_interfaces interface(s) $isis_interface_errors error(s)<br>\n";
     }
 }
 
