@@ -46,7 +46,6 @@ use vars qw( %options $host $community $verbose);
 my $STATE_WARNING = 1;
 my $STATE_UNKNOWN = 3;
 my $STATE_OK = 0;
-my $result;
 my $statewarning;
 my $rstring = "";
 my $estring = "";
