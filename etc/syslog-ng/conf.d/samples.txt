@@ -148,3 +148,14 @@ log { source ( s_src ); filter( f_allhosts ); destination ( df_not_local1-7 ); f
 #filter f_wap { match("Station" value("MESSAGE")); };
 #destination df_wap { file("/opt/syslog/wap.log" template(t_filetemplate)); };
 #log { source ( s_src ); filter( f_wap ); destination ( df_wap ); flags(final); };
+
+destination d_smtp {
+    smtp(
+        host("localhost")
+        port(25)
+        from("syslog-ng alert service" "dcox@stepcg.com")
+        to("Admin #1" "danielcoxman@gmail.com")
+        subject("[ALERT] Important log message of $LEVEL condition received from $HOST/$PROGRAM!")
+        body("Hi!\nThe syslog-ng alerting service detected the following important log message:\n $MSG\n-- \nsyslog-ng\n")
+    );
+};
