@@ -16,5 +16,6 @@
 # send logs to librenms
 
 # z-stepcg.conf
-# send voss logs to /opt/www/syslog/voss.log
 # catch all logs and send to /opt/www/syslog/all.log
+# send VOSS cli commands via a string match and STOP
+# send voss logs to /opt/www/syslog/voss.log
