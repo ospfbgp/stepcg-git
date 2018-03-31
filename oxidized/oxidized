@@ -31,7 +31,8 @@ fi
 
 CONFIG="${CONFIG:-/etc/oxidized/config}"
 
-PIDFILE=/var/run/oxidized/$NAME.pid
+#PIDFILE=/var/run/oxidized/$NAME.pid
+PIDFILE=/etc/oxidized/oxidized.pid
 
 do_start()
 {
