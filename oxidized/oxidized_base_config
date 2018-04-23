@@ -82,7 +82,5 @@ models:
 
 # map device to <model>.rb file
 model_map:
-  avaya-vsp: voss
-  avaya-ers: boss
   voss: voss
   boss: boss
