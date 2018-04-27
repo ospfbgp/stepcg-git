@@ -12,7 +12,7 @@ timeout: 20
 retries: 3
 prompt: !ruby/regexp /^([\w.@-]+[#>]\s?)$/
 # what ip address to listen to for web interface
-rest: 0.0.0.0:8888/configs
+rest: 127.0.0.1:8888/configs
 #vars: {}
 vars:
   tftpserver: 192.168.1.229
