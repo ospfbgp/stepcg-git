@@ -48,8 +48,9 @@ output:
 source:
   default: http
   http:
-    url: http://127.0.0.1/dashboard/api/v0/oxidized
+    url: https://127.0.0.1/dashboard/api/v0/oxidized
     scheme: https
+    secure: false
     delimiter: !ruby/regexp /:/
     map:
       name: hostname
