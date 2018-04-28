@@ -15,15 +15,15 @@ prompt: !ruby/regexp /^([\w.@-]+[#>]\s?)$/
 rest: 127.0.0.1:8888/configs
 #vars: {}
 vars:
+  remove_secret: true
+  vars:
+  remove_secret: true
+# set ssh key exchange and encryption
+# ssh_kex: "diffie-hellman-group1-sha1, diffie-hellman-group14-sha1"
+# ssh_encryption: "3des-cbc, aead-aes-128-gcm-ssh, aead-aes-256-gcm-ssh, aes128-cbc, aes128-ctr, aes192-cbc, aes192-ctr, aes256-cbc, aes256-ctr, blowfish-cbc"
   tftpserver: 192.168.1.229
 groups: {}
 pid: "/etc/oxidized/oxidized.pid"
-
-input:
-  default: ssh, telnet
-  debug: false
-  ssh:
-    secure: false
 
 output:
   default: git
@@ -40,10 +40,12 @@ output:
 #    delimiter: !ruby/regexp /:/
 #    map:
 #      name: 0
-#      model: 1
-#      group: 2
+#      ip: 1
+#      model: 2
 #      username: 3
 #      password: 4
+#    vars_map:
+#      enable: 5
 
 source:
   default: http
