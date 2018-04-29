@@ -45,6 +45,7 @@ myisam-recover         = BACKUP
 #thread_concurrency     = 10
 innodb_buffer_pool_size = 2G
 innodb_buffer_pool_instances = 2
+innodb_flush_log_at_trx_commit = 0
 
 #
 # * Query Cache Configuration
