@@ -7,4 +7,5 @@
     delaycompress
     missingok
     notifempty
+    su root librenms
 }
