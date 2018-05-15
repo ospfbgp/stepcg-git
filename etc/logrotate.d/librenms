@@ -1,7 +1,7 @@
 # /etc/logrotate.d/librenms
 /opt/librenms/logs/*.log {
     weekly
-    create 0644 librenms librenms
+    create 0664 librenms librenms
     rotate 6
     compress
     delaycompress
