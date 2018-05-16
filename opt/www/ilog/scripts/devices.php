@@ -29,24 +29,6 @@ $primaryKey = 'device_id';
 // parameter represents the DataTables column identifier. In this case simple
 // indexes
 
-function seconds_to_time($seconds){
-$string = "";
-
-$days = intval(intval($seconds) / (3600*24));
-$hours = (intval($seconds) / 3600) % 24;
-$minutes = (intval($seconds) / 60) % 60;
-$seconds = (intval($seconds)) % 60;
-$days = sprintf("%03d", $days);
-$hours = sprintf("%02d", $hours);
-$minutes = sprintf("%02d", $minutes);
-$seconds = sprintf("%02d", $seconds);
-
-$string = "$days:$hours:$minutes:$seconds";
-return $string;
-}
-
-$uptime = seconds_to_time();
-
 $columns = array(
         array( 'db' => 'device_id',  'dt' => 0 ),
         array( 'db' => 'status',     'dt' => 1 ),
@@ -65,7 +47,7 @@ $columns = array(
 // SQL server connection information
 $sql_details = array(
         'user' => 'ilog',
-        'pass' => 'ilog',
+        'pass' => 'ilogpassword',
         'db'   => 'librenms',
         'host' => 'localhost'
 );
