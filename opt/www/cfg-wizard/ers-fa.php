@@ -20,7 +20,9 @@ span {
 <?php
 $sntpserver = "1.1.1.1";
 $syslog = "1.1.1.2";
-$timezone = "EST";
+$timezone = "clock time-zone EST -5 0";
+//$timezone = "clock time-zone EST -6 0";
+$slpptimeout = "14400";
 ///https://www.w3schools.com/php/php_form_complete.asp
 // define variables and set to empty values
 $error = "";
@@ -132,6 +134,9 @@ function test_input($data) {
   Contact: <input type="text" name="contact" value="<?php echo $contact;?>">
   <span class="error">* <?php echo $contactErr;?></span>
   <br><br>
+  Location: <input type="text" name="location" value="<?php echo $location;?>">
+  <span class="error">* <?php echo $locationErr;?></span>
+  <br><br>
   Stack Size: 
 <select name="stacksize" >
   <option value="1" <?php if($stacksize == '1'){echo("selected");}?>>1</option>
@@ -143,9 +148,6 @@ function test_input($data) {
   <option value="7" <?php if($stacksize == '7'){echo("selected");}?>>7</option>
   <option value="8" <?php if($stacksize == '8'){echo("selected");}?>>8</option>
 </select>
-  <br><br>
-  Location: <input type="text" name="location" value="<?php echo $location;?>">
-  <span class="error">* <?php echo $locationErr;?></span>
   <br><br>
   Mgmt IP Address: <input type="text" name="mgmtipaddress" value="<?php echo $mgmtipaddress;?>">
   <span class="error"> <?php echo $mgmtipaddressErr;?></span>
@@ -179,11 +181,20 @@ function test_input($data) {
 <select name="faport1" >
   <option value="1/50" <?php if($faport1 == '1/50'){echo("selected");}?>>1/50</option>
   <option value="1/49" <?php if($faport1 == '1/49'){echo("selected");}?>>1/49</option>
+  <option value="1/48" <?php if($faport1 == '1/48'){echo("selected");}?>>1/48</option>
+  <option value="1/47" <?php if($faport1 == '1/47'){echo("selected");}?>>1/47</option>
+</select>
 </select>
 <select name="faport2" >
   <option value="" <?php if($faport2 == ''){echo("selected");}?>>none</option>
   <option value="2/50" <?php if($faport2 == '2/50'){echo("selected");}?>>2/50</option>
   <option value="2/49" <?php if($faport2 == '2/49'){echo("selected");}?>>2/49</option>
+  <option value="2/48" <?php if($faport2 == '2/48'){echo("selected");}?>>2/48</option>
+  <option value="2/47" <?php if($faport2 == '2/47'){echo("selected");}?>>2/47</option>
+  <option value="1/50" <?php if($faport2 == '1/50'){echo("selected");}?>>1/50</option>
+  <option value="1/49" <?php if($faport2 == '1/49'){echo("selected");}?>>1/49</option>
+  <option value="1/48" <?php if($faport2 == '1/48'){echo("selected");}?>>1/48</option>
+  <option value="1/47" <?php if($faport2 == '1/47'){echo("selected");}?>>1/47</option>
 </select>
   <br><br>
   <input type="submit" name="submit" value="Create Config">  
@@ -193,38 +204,108 @@ function test_input($data) {
 if ($error == 0) {
 echo "<hr><span>ERS Fabric Attach Startup Configuration:</span><br><br>";
 echo "
+<font color=\"blue\">! *** Section 1 ***</font><br>
 enable<br>
 config t<br>
-sysname=$sysname<br>
-sntpserver=$sntpserver<br>
-syslog=$syslog<br>
-timezone=$timezone<br>
-stacksize=$stacksize<br>
-sysname=$sysname<br>
-contact=$contact<br>
-location=$location<br>
-mgmtipaddress=$mgmtipaddress<br>
-mgmtnetmask=$mgmtnetmask<br>
-defaultgateway=$defaultgateway<br>
-mgmtvlan=$mgmtvlan<br>
-mgmtisid=$mgmtisid<br>
-exit<br>
+no password security<br>
+no autosave enable<br>
+snmp-server name \"<font color=\"orange\">$sysname\"</font><br>
+snmp-server contact \"<font color=\"orange\">$contact\"</font><br>
+snmp-server location \"<font color=\"orange\">$location\"</font><br>
+banner disabled<br>
+ssh<br>
+terminal width 132<br>
+sntp server primary address <font color=\"orange\">$sntpserver</font><br>
+sntp enable<br>
+clock source sntp<br>
+clock summer-time recurring 2 Sunday March 02:00 1 Sunday November 02:00 60<br>
+$timezone<br>
+logging remote address <font color=\"orange\">$syslog</font><br>
+logging remote enable<br>
+logging remote level informational<br>
+web-server enable<br>
+ssl<br>
+https-only<br>
+<br>
+<font color=\"blue\">! *** Section 2 ***</font><br>
+vlan configcontrol automatic<br>
+vlan create <font color=\"orange\">$mgmtvlan</font> type port <br>
+vlan name <font color=\"orange\">$mgmtvlan</font> \"Mgmt\"<br>
+vlan mgmt <font color=\"orange\">$mgmtvlan</font><br>
 ";
+}
+if ($stacksize > 1){
+echo "ip address stack <font color=\"orange\">$mgmtipaddress</font><br>";
+} else {
+echo "ip address switch <font color=\"orange\">$mgmtipaddress</font><br>";
+}
+echo "
+ip address netmask <font color=\"orange\">$mgmtnetmask</font><br>
+ip default-gateway <font color=\"orange\">$defaultgateway</font><br>
+i-sid <font color=\"orange\">$mgmtisid</font> vlan <font color=\"orange\">$mgmtvlan</font><br>
+qos agent queue-set 4<br>
+qos if-group name trusted class trusted<br>
+qos if-assign port ALL name trusted<br>
+";
+if ($stacksize > 1){
+echo "stack forced-mode<br>";
 }
 if (!empty($_POST["faport2"])){
 echo "
-<span>MLT</span><br>
-faport1=$faport1<br>
-faport2=$faport2<br>
+<br>
+<font color=\"blue\">! *** Section 3 ***</font><br>
+mlt 1 name \"fa\" enable member <font color=\"orange\">$faport1,$faport2</font><br>
+mlt 1 loadbalance advance<br>
+mlt shutdown-ports-on-disable enable<br>
+interface Ethernet ALL<br>
+spanning-tree mstp port <font color=\"orange\">$faport1,$faport2</font> learning disable<br>
+exit<br>
+vlacp enable<br>
+vlacp macaddress 180.c200.f<br>
+interface Ethernet ALL<br>
+vlacp port <font color=\"orange\">$faport1,$faport2</font> timeout short<br>
+vlacp port <font color=\"orange\">$faport1,$faport2</font> timeout-scale 5<br>
+vlacp port <font color=\"orange\">$faport1,$faport2</font> enable<br>
+exit<br>
+interface ethernet <font color=\"orange\">$faport1,$faport2</font><br>
+name \"fa: uplink\"<br>
+no fa message-authentication<br>
+exit<br>
 ";
 } else {
 echo "
-<span>NO MLT</span><br>
-faport1=$faport1<br>
-faport2=$faport2<br>
+<br>
+<font color=\"blue\">! *** Section 3 ***</font><br>
+interface Ethernet ALL<br>
+spanning-tree mstp port <font color=\"orange\">$faport1</font> learning disable<br>
+exit<br>
+vlacp enable<br>
+vlacp macaddress 180.c200.f<br>
+interface Ethernet ALL<br>
+vlacp port <font color=\"orange\">$faport1</font> timeout short<br>
+vlacp port <font color=\"orange\">$faport1</font> timeout-scale 5<br>
+vlacp port <font color=\"orange\">$faport1</font> enable<br>
+exit<br>
+interface ethernet <font color=\"orange\">$faport1</font><br>
+name \"fa: uplink\"<br>
+no fa message authentication<br>
+exit<br>
 ";
 }
+echo "
+<br>
+<font color=\"blue\">! *** Section 4 ***</font><br>
+fa extended-logging<br>
+interface Ethernet ALL<br>
+";
+$loopCount = stacksize;
+for ($x = 1; $x<=$stacksize; $x++) {
+echo "slpp-guard port $x/1-48 enable timeout $slpptimeout<br>";
+} 
+echo "
+exit<br>
+wri mem<br>
+";
 ?>
-
 </body>
 </html>
