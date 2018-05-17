@@ -86,7 +86,7 @@ function test_input($data) {
 }
 ?>
 
-<h2>VSP Startup OSF</h2>
+<h2>VSP Fabric Startup</h2>
 <p><span class="error">* required field</span></p>
 <form method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>">  
   Sys name: <input type="text" name="sysname" value="<?php echo $sysname;?>">
@@ -111,7 +111,7 @@ function test_input($data) {
 </form>
 
 <?php
-echo "<h2>VSP Startup Configuration:</h2>";
+echo "<h2>VSP Fabric Configuration:</h2>";
 echo "
 enable<br>
 config t<br>
