@@ -10,6 +10,7 @@
 <?php
 ///https://www.w3schools.com/php/php_form_complete.asp
 // define variables and set to empty values
+$error = "";
 $sysname = "";
 $sysnameErr = "";
 $contact = "";
@@ -34,7 +35,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $sysname = test_input($_POST["sysname"]);
     // check if name only contains letters and whitespace
     if (!preg_match("/^[a-z0-9.\-]+$/i",$sysname)) {
-      $sysnameErr = "Only letters, numbers, . and -"; 
+      $sysnameErr = "Only letters, numbers, . and -";
+      $error = 1;
     }
   }
 
@@ -57,7 +59,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // check if name only contains letters and whitespace
     if (!preg_match("/^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/ 
 ",$loopback1)) {
-      $loopback1Err = "Only IPv4 Address allowed"; 
+      $loopback1Err = "Only IPv4 Address allowed";
+      $error = 1;
     }
   }
 
@@ -67,7 +70,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $nickname = test_input($_POST["nickname"]);
     // check if name only contains letters and whitespace
     if (!preg_match("/^[a-fA-F0-9]{1}\.[a-fA-F0-9]{1,2}\.[a-fA-F0-9]{1,2}$/ ",$nickname)) {
-      $nicknameErr = "Nickname x.xx.xx in hex"; 
+      $nicknameErr = "Nickname x.xx.xx in hex";
+      $error = 1;
     }
   }
 
@@ -111,6 +115,7 @@ function test_input($data) {
 </form>
 
 <?php
+if ($error == 0) {
 echo "<h2>VSP Fabric Configuration:</h2>";
 echo "
 enable<br>
@@ -163,6 +168,7 @@ exit<br>
 <br>
 vlacp enable<br>
 ";
+}
 ?>
 
 </body>
