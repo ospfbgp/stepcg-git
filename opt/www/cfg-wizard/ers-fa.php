@@ -24,13 +24,13 @@ $timezone = "EST";
 ///https://www.w3schools.com/php/php_form_complete.asp
 // define variables and set to empty values
 $error = "";
-$stacksize = "";
 $sysname = "";
 $sysnameErr = "";
 $contact = "";
 $contactErr = "";
 $location = "";
 $locationErr = "";
+$stacksize = "";
 $mgmtipaddress = "";
 $mgmtipaddressErr = "";
 $mgmtnetmask = "";
@@ -68,6 +68,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   } else {
     $location = test_input($_POST["location"]);
   }
+
+  $stacksize = test_input($_POST["stacksize"]);
 
   if (empty($_POST["mgmtipaddress"])) {
     $mgmtipaddressErr = "Management IP is required";
@@ -126,26 +128,38 @@ function test_input($data) {
   Contact: <input type="text" name="contact" value="<?php echo $contact;?>">
   <span class="error">* <?php echo $contactErr;?></span>
   <br><br>
+  Stack Size: 
+<select name="stacksize" >
+  <option value="1" <?php if($stacksize == '1'){echo("selected");}?>>1</option>
+  <option value="2" <?php if($stacksize == '2'){echo("selected");}?>>2</option>
+  <option value="3" <?php if($stacksize == '3'){echo("selected");}?>>3</option>
+  <option value="4" <?php if($stacksize == '4'){echo("selected");}?>>4</option>
+  <option value="5" <?php if($stacksize == '5'){echo("selected");}?>>5</option>
+  <option value="6" <?php if($stacksize == '6'){echo("selected");}?>>6</option>
+  <option value="7" <?php if($stacksize == '7'){echo("selected");}?>>7</option>
+  <option value="8" <?php if($stacksize == '8'){echo("selected");}?>>8</option>
+</select>
+  <br><br>
   Location: <input type="text" name="location" value="<?php echo $location;?>">
   <span class="error">* <?php echo $locationErr;?></span>
   <br><br>
   Mgmt IP Address: <input type="text" name="mgmtipaddress" value="<?php echo $mgmtipaddress;?>">
   <span class="error"> <?php echo $mgmtipaddressErr;?></span>
-<select name="mgmtnetworkmask" >
-  <option value="255.255.255.0" <?php if($mgmtnetworkmask == '255.255.255.0'){echo("selected");}?>>255.255.255.0</option>
-  <option value="255.255.255.252" <?php if($mgmtnetworkmask == '255.255.255.252'){echo("selected");}?>>255.255.255.252</option>
-  <option value="255.255.255.248" <?php if($mgmtnetworkmask == '255.255.255.248'){echo("selected");}?>>255.255.255.248</option>
-  <option value="255.255.255.240" <?php if($mgmtnetworkmask == '255.255.255.240'){echo("selected");}?>>255.255.255.240</option>
-  <option value="255.255.255.224" <?php if($mgmtnetworkmask == '255.255.255.224'){echo("selected");}?>>255.255.255.224</option>
-  <option value="255.255.255.192" <?php if($mgmtnetworkmask == '255.255.255.192'){echo("selected");}?>>255.255.255.192</option>
-  <option value="255.255.255.128" <?php if($mgmtnetworkmask == '255.255.255.128'){echo("selected");}?>>255.255.255.128</option>
-  <option value="255.255.252.0" <?php if($mgmtnetworkmask == '255.255.252.0'){echo("selected");}?>>255.255.252.0</option>
-  <option value="255.255.248.0" <?php if($mgmtnetworkmask == '255.255.248.0'){echo("selected");}?>>255.255.248.0</option>
-  <option value="255.255.240.0" <?php if($mgmtnetworkmask == '255.255.240.0'){echo("selected");}?>>255.255.240.0</option>
-  <option value="255.255.224.0" <?php if($mgmtnetworkmask == '255.255.224.0'){echo("selected");}?>>255.255.224.0</option>
-  <option value="255.255.192.0" <?php if($mgmtnetworkmask == '255.255.192.0'){echo("selected");}?>>255.255.192.0</option>
-  <option value="255.255.128.0" <?php if($mgmtnetworkmask == '255.255.128.0'){echo("selected");}?>>255.255.128.0</option>
-  <option value="255.255.0.0" <?php if($mgmtnetworkmask == '255.255.0.0'){echo("selected");}?>>255.255.0.0</option>
+<select name="mgmtnetmask" >
+  <option value="255.255.255.0" <?php if($mgmtnetmask == '255.255.255.0'){echo("selected");}?>>255.255.255.0</option>
+  <option value="255.255.255.252" <?php if($mgmtnetmask == '255.255.255.252'){echo("selected");}?>>255.255.255.252</option>
+  <option value="255.255.255.248" <?php if($mgmtnetmask == '255.255.255.248'){echo("selected");}?>>255.255.255.248</option>
+  <option value="255.255.255.240" <?php if($mgmtnetmask == '255.255.255.240'){echo("selected");}?>>255.255.255.240</option>
+  <option value="255.255.255.224" <?php if($mgmtnetmask == '255.255.255.224'){echo("selected");}?>>255.255.255.224</option>
+  <option value="255.255.255.192" <?php if($mgmtnetmask == '255.255.255.192'){echo("selected");}?>>255.255.255.192</option>
+  <option value="255.255.255.128" <?php if($mgmtnetmask == '255.255.255.128'){echo("selected");}?>>255.255.255.128</option>
+  <option value="255.255.252.0" <?php if($mgmtnetmask == '255.255.252.0'){echo("selected");}?>>255.255.252.0</option>
+  <option value="255.255.248.0" <?php if($mgmtnetmask == '255.255.248.0'){echo("selected");}?>>255.255.248.0</option>
+  <option value="255.255.240.0" <?php if($mgmtnetmask == '255.255.240.0'){echo("selected");}?>>255.255.240.0</option>
+  <option value="255.255.224.0" <?php if($mgmtnetmask == '255.255.224.0'){echo("selected");}?>>255.255.224.0</option>
+  <option value="255.255.192.0" <?php if($mgmtnetmask == '255.255.192.0'){echo("selected");}?>>255.255.192.0</option>
+  <option value="255.255.128.0" <?php if($mgmtnetmask == '255.255.128.0'){echo("selected");}?>>255.255.128.0</option>
+  <option value="255.255.0.0" <?php if($mgmtnetmask == '255.255.0.0'){echo("selected");}?>>255.255.0.0</option>
 </select>
   <br><br>
   Mgmt default gateway: <input type="text" name="defaultgateway" value="<?php echo $defaultgateway;?>">
@@ -166,20 +180,19 @@ echo "<hr><span>ERS Fabric Attach Startup Configuration:</span><br><br>";
 echo "
 enable<br>
 config t<br>
-$sysname<br>
-$sntpserver<br>
-$syslog<br>
-$timezone<br>
-$error<br>
-$stacksize<br>
-$sysname<br>
-$contact<br>
-$location<br>
-$mgmtipaddress<br>
-$mgmtnetmask<br>
-$defaultgateway<br>
-$mgmtvlan<br>
-$mgmtisid<br>
+sysname=$sysname<br>
+sntpserver=$sntpserver<br>
+syslog=$syslog<br>
+timezone=$timezone<br>
+stacksize=$stacksize<br>
+sysname=$sysname<br>
+contact=$contact<br>
+location=$location<br>
+mgmtipaddress=$mgmtipaddress<br>
+mgmtnetmask=$mgmtnetmask<br>
+defaultgateway=$defaultgateway<br>
+mgmtvlan=$mgmtvlan<br>
+mgmtisid=$mgmtisid<br>
 exit<br>
 ";
 }
