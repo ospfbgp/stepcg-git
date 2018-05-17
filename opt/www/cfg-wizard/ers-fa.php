@@ -40,6 +40,8 @@ $mgmtvlan = "";
 $mgmtvlanErr = "";
 $mgmtisid = "";
 $mgmtisidErr = "";
+$faport1 = "";
+$faport2 = "";
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
@@ -111,6 +113,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $mgmtisid = test_input($_POST["mgmtisid"]);
   }
 
+  $faport1 = test_input($_POST["faport1"]);
+  $faport2 = test_input($_POST["faport2"]);
 }
 
 function test_input($data) {
@@ -171,6 +175,17 @@ function test_input($data) {
   Mgmt i-sid: <input type="text" name="mgmtisid" value="<?php echo $mgmtisid;?>">
   <span class="error"> <?php echo $mgmtisidErr;?></span>
   <br><br>
+  FA Ports: 
+<select name="faport1" >
+  <option value="1/50" <?php if($faport1 == '1/50'){echo("selected");}?>>1/50</option>
+  <option value="1/49" <?php if($faport1 == '1/49'){echo("selected");}?>>1/49</option>
+</select>
+<select name="faport2" >
+  <option value="" <?php if($faport2 == ''){echo("selected");}?>>none</option>
+  <option value="2/50" <?php if($faport2 == '2/50'){echo("selected");}?>>2/50</option>
+  <option value="2/49" <?php if($faport2 == '2/49'){echo("selected");}?>>2/49</option>
+</select>
+  <br><br>
   <input type="submit" name="submit" value="Create Config">  
 </form>
 
@@ -194,6 +209,19 @@ defaultgateway=$defaultgateway<br>
 mgmtvlan=$mgmtvlan<br>
 mgmtisid=$mgmtisid<br>
 exit<br>
+";
+}
+if (!empty($_POST["faport2"])){
+echo "
+<span>MLT</span><br>
+faport1=$faport1<br>
+faport2=$faport2<br>
+";
+} else {
+echo "
+<span>NO MLT</span><br>
+faport1=$faport1<br>
+faport2=$faport2<br>
 ";
 }
 ?>
