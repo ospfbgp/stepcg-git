@@ -21,7 +21,6 @@ span {
 $manualarea = "5.2018";
 $pribvlan = "4051";
 $secbvlan = "4052";
-///https://www.w3schools.com/php/php_form_complete.asp
 // define variables and set to empty values
 $error = "";
 $sysname = "";
@@ -262,6 +261,5 @@ exit<br>
 
 }
 ?>
-
 </body>
 </html>
