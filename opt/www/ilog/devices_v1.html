@@ -1,22 +1,3 @@
-<?php
-function seconds_to_time($seconds){
-$string = "";
-
-$days = intval(intval($seconds) / (3600*24));
-$hours = (intval($seconds) / 3600) % 24;
-$minutes = (intval($seconds) / 60) % 60;
-$seconds = (intval($seconds)) % 60;
-$days = sprintf("%03d", $days);
-$hours = sprintf("%02d", $hours);
-$minutes = sprintf("%02d", $minutes);
-$seconds = sprintf("%02d", $seconds);
-
-$string = "$days:$hours:$minutes:$seconds";
-return $string;
-
-}
-?>
-
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -78,7 +59,7 @@ return $string;
                     "info":     false,
                     columnDefs: [
                        { "orderable": true, "width": "20px",  "targets": 0 },
-                       { "orderable": true, "width": "20px",  "targets": 1, 
+                       { "orderable": true, "width": "20px",  "targets": 1, "searchable": false,
                        "download": "download_link", render: function ( data, type, row, meta ) { return data == 1 ? '<span class=\"greendot\"></span>' : '<span class=\"reddot\"></span>'; } },
                        { "orderable": true, "width": "170px", "targets": 2 },
                        { "orderable": true, "width": "30px",  "targets": 3, 
@@ -89,7 +70,24 @@ return $string;
                        { "orderable": true, "width": "100px", "targets": 7 },
                        { "orderable": true, "width": "100px", "targets": 8 },
                        { "orderable": true, "width": "100px", "targets": 9 },
-                       { "orderable": true, "targets": 10 }
+                       { "orderable": true, "width": "30px",  "targets": 10, "searchable": false, 
+                        "download": "download_link", "render": function ( data, type, row, meta ) 
+                         { 
+
+var numdays = Math.floor(data / 86400);
+var numhours = Math.floor((data % 86400) / 3600);
+var numminutes = Math.floor(((data % 86400) % 3600) / 60);
+var numseconds = ((data % 86400) % 3600) % 60;
+
+if (numdays == 0) {
+   return '<p class="text-danger">'+numdays+' days</p>';
+} else {
+   return numdays + " days";
+};
+//return numdays + " days " + numhours + " hours " + numminutes + " minutes " + numseconds + " seconds";
+
+                         } 
+                       }
                    ],
                    fixedColumns: true,
                    language: { 
