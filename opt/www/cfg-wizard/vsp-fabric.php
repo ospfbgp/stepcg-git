@@ -3,10 +3,20 @@
 <head>
 <style>
 .error {color: #FF0000;}
+span {
+    font-weight: bold;
+    color: purple;
+    font-style: italic;
+}
 </style>
 </head>
 <body>  
 
+<header>
+    <img src="/images/networkninja.png" height="30px" alt="STEPcg Network Ninja">
+    <span>VSP Fabric Startup: v1.0</span>
+    <hr>
+</header>
 <?php
 $manualarea = "5.2018";
 $pribvlan = "4051";
@@ -117,8 +127,6 @@ function test_input($data) {
   return $data;
 }
 ?>
-
-<h2>VSP Fabric Startup</h2>
 <p>Please input your fields. <span class="error">* required field</span></p>
 <form method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>">  
   Sys name: <input type="text" name="sysname" value="<?php echo $sysname;?>">
@@ -138,7 +146,10 @@ function test_input($data) {
   <br><br>
   ISIS interfaces: <input type="text" name="isisinterfaces" value="<?php echo $isisinterfaces;?>">
   <span class="error">* <?php echo $isisinterfacesErr;?></span>
-  <h3>Virtual-Ist setup for clustered VSP switches</h3>
+  <br>
+  <br>
+  <span>Virtual-Ist setup for clustered VSP switches</span>
+  <hr>
   Vist VLAN: <input type="text" name="vistvlan" value="<?php echo $vistvlan;?>">
   <span class="error"> <?php echo $vistvlanErr;?></span>
   <br><br>
@@ -169,7 +180,7 @@ function test_input($data) {
 
 <?php
 if ($error == 0) {
-echo "<hr><h3>VSP Fabric Startup Configuration:</h3>";
+echo "<hr><span>VSP Fabric Startup Configuration:</span><br><br>";
 echo "
 enable<br>
 config t<br>
@@ -224,7 +235,7 @@ vlacp enable<br>
 ";
 
 if (!empty($_POST["vistvlan"])){
-echo "<h3>VSP Vist Configuration</h3>";
+echo "<span>VSP Vist Configuration:</span><br><br>";
 echo "
 enable<br>
 config t<br>
