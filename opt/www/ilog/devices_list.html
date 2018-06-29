@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <meta charset="utf-8"/>
+        <title>Dashboard Device List</title>
+        <link rel="stylesheet" type="text/css" href="./bootstrap-3.3.7-dist/css/bootstrap.min.css">
+        <link rel="stylesheet" type="text/css" href="./css/dataTables.bootstrap.css">
+        <link rel="stylesheet" type="text/css" href="./css/buttons.dataTables.min.css">
+        <link rel="stylesheet" type="text/css" href="./css/style_devices.css">
+        <link rel="stylesheet" type="text/css" href="./css/buttons.bootstrap.min.css">
+        <script type="text/javascript" src="./js/jquery-1.12.4.js"> </script>
+        <script type="text/javascript" src="./js/jquery.dataTables.js"> </script>
+        <script type="text/javascript" src="./js/dataTables.bootstrap.js"> </script>
+        <script type="text/javascript" src="./js/dataTables.colReorder.min.js"> </script>
+        <script type="text/javascript" src="./js/dataTables.buttons.min.js"> </script>
+        <script type="text/javascript" src="./js/buttons.bootstrap.min.js"> </script>
+        <script type="text/javascript" src="./js/buttons.colVis.min.js"> </script>
+        <script type="text/javascript" src="./mark.js/jquery.mark.js"> </script>
+        <script type="text/javascript" src="./js/datatables.mark.js"> </script>
+        <script type="text/javascript" src="https://cdn.datatables.net/plug-ins/1.10.16/sorting/ip-address.js"> </script>
+<style>
+.dataTables_wrapper .myfilter .dataTables_filter {
+    float:left
+}
+.dataTables_wrapper .mylength .dataTables_length {
+    float:right
+}
+.greendot {
+    height: 12px;
+    width: 12px;
+    background-color: #008000;
+    border-radius: 50%;
+    display: inline-block;
+}
+.reddot {
+    height: 12px;
+    width: 12px;
+    background-color: #FF0000;
+    border-radius: 50%;
+    display: inline-block;
+}
+</style>
+        <script type="text/javascript" class="init">
+            $(document).ready(function() {
+                var t = $('#example').DataTable( {
+                    processing: true,
+                    serverSide: true,
+                    initComplete : function () {
+                        t.buttons().container()
+                       .appendTo( $('#example_wrapper .col-sm-6:eq(0)'));
+                    },
+                    ajax: "./scripts/device_list.php",
+                    mark: true,
+                    dom:"<'myfilter'f><'mylength'l>t",
+                    "info":     false,
+                    "paging":   false,
+                    "ordering": true,
+                    "info":     false,
+                    columnDefs: [
+                       { "orderable": true, "width": "15px",  "targets": 0 },
+                       { "orderable": true, "width": "15px",  "targets": 1, "searchable": false,
+                       "download": "download_link", render: function ( data, type, row, meta ) { return data == 1 ? '<span class=\"greendot\"></span>' : '<span class=\"reddot\"></span>'; } },
+                       { "orderable": true, "width": "170px", "targets": 2 },
+                       { "orderable": true, "width": "50px", "targets": 3 },
+                       { "orderable": true, "width": "25px",  "targets": 4, 
+                        "download": "download_link", render: function ( data, type, row, meta ) 
+                        { return '<a href="ssh://'+data+'">ssh</a>&nbsp<a href="https://'+data+'">https</a><br /><a href="telnet://'+data+'">telnet</a>&nbsp<a href="http://'+data+'">http</a>'; } },
+                       { "orderable": true, "width": "200px", "targets": 5 },
+                       { "orderable": true, "width": "100px", "targets": 6 },
+                       { "orderable": true, "width": "30px",  "targets": 7 },
+                       { "orderable": true, "width": "50px", "targets": 8 },
+                       { "orderable": true, "width": "50px", "targets": 9 },
+                       { "orderable": true, "width": "100px", "targets": 10 },
+                       { "orderable": true, "width": "30px",  "targets": 11, "searchable": false, 
+                        "download": "download_link", "render": function ( data, type, row, meta ) 
+                         { 
+
+var numdays = Math.floor(data / 86400);
+var numhours = Math.floor((data % 86400) / 3600);
+var numminutes = Math.floor(((data % 86400) % 3600) / 60);
+var numseconds = ((data % 86400) % 3600) % 60;
+
+if (numdays == 0) {
+   return '<p class="text-danger">'+numdays+' days</p>';
+} else {
+   return numdays + " days";
+};
+//return numdays + " days " + numhours + " hours " + numminutes + " minutes " + numseconds + " seconds";
+
+                         } 
+                       }
+                   ],
+                   fixedColumns: true,
+                   language: { 
+                      "search": "",
+                      searchPlaceholder: "Search Devices" }
+                } );
+            } );
+        </script>
+    </head>
+<body id="body">
+    <div class="container-fluid">
+<br>
+<a style="float:left;margin-right:5px;"><img src="./images/networkninja.png" height="30px" alt="STEPcg Network Ninja"></a>
+        <table class="table table-striped table-bordered table-hover table-condensed" id="example" style="width:98%">
+            <thead>
+                <tr>
+                <th>id</th>
+                <th>status</th>
+                <th>sysName</th>
+                <th>ip</th>
+                <th>link</th>
+                <th>location</th>
+                <th>hardware</th>
+                <th>os</th>
+                <th>version</th>
+                <th>serial</th>
+                <th>features</th>
+                <th>uptime</th>
+                </tr>
+            </thead>
+       </table>
+    </div>
+</body>
+</html>
