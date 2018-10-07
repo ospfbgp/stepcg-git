@@ -29,6 +29,9 @@ $mltname = "";
 $mltports = "";
 $mltportsErr = "";
 $mltvlans = "";
+$mstp = "checked";
+$smlt = "";
+$vlacp = "";
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
@@ -36,6 +39,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $mltname = test_input($_POST["mltname"]);
     $mltports = test_input($_POST["mltports"]);
     $mltvlans = test_input($_POST["mltvlans"]);
+    $vlacp = test_input($_POST["vlacp"]);
+    $smlt = test_input($_POST["smlt"]);
 
 }
 
@@ -60,7 +65,11 @@ function test_input($data) {
   MLT VLANs: <textarea name="mltvlans" cols="100" rows="6"><?=$mltvlans?></textarea>
   <br>
   <br>
+  <input type="checkbox" name="smlt" value="checked" style="zoom:1.5;" <?php echo $smlt;?>>Enable smlt<br>
+  <input type="checkbox" name="mstp" value="checked" style="zoom:1.5;"<?php echo $mstp;?>>Disable interface mstp<br>
+  <input type="checkbox" name="vlacp" value="checked" style="zoom:1.5;"<?php echo $vlacp;?>>Enable interface vlacp<br>
   <input type="submit" name="submit" value="Create Config">  
+  <br>
 </form>
 </form>
 
@@ -72,6 +81,20 @@ enable<br>
 config t<br>
 interface gigabit <font color=\"orange\">$mltports</font><br>
 name <font color=\"orange\">\"$mltname\"</font><br>
+";
+if ($vlacp == "checked") {
+echo "
+vlacp fast-periodic-time 500 timeout short timeout-scale 5 funcmac-addr 01:80:c2:00:00:0f<br>
+vlacp enable<br>
+";
+}
+if ($mstp == "checked") {
+echo "
+no spanning-tree mstp<br>
+y<br>
+";
+}
+echo "
 exit<br>
 <br>
 mlt <font color=\"orange\">$mltnum</font> enable<br>
@@ -80,6 +103,14 @@ mlt <font color=\"orange\">$mltnum</font> member <font color=\"orange\">$mltport
 mlt <font color=\"orange\">$mltnum</font> encapsulation dot1q<br>
 <br>
 ";
+if ($smlt == "checked") {
+echo "
+interface <font color=\"orange\">$mltnum</font><br>
+smlt<br>
+exit<br>
+<br>
+";
+}
 $vlanarray = preg_split("~\s+~",$mltvlans);
 foreach ($vlanarray as $vlan) {
     echo "mlt <font color=\"orange\">$mltnum</font> vlan $vlan<br>";
