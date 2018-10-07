@@ -48,13 +48,13 @@ function test_input($data) {
 ?>
 <p>Please input your fields. </span></p>
 <form method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>">  
-  MLT Number: <input type="text" name="mltnum" value="<?php echo $mltnum;?>">
+  MLT Number: <input type="text" name="mltnum" size="3" maxlength="3" value="<?php echo $mltnum;?>">
   <br>
   <br>
-  MLT Name: <input type="text" name="mltname" value="<?php echo $mltname;?>">
+  MLT Name: <input type="text" name="mltname" size="20" maxlength="20" value="<?php echo $mltname;?>">
   <br>
   <br>
-  MLT Ports: <input type="text" name="mltports" value="<?php echo $mltports;?>">
+  MLT Ports: <input type="text" name="mltports" size="35" value="<?php echo $mltports;?>">
   <br>
   <br>
   MLT VLANs: <textarea name="mltvlans" cols="100" rows="6"><?=$mltvlans?></textarea>
@@ -74,7 +74,8 @@ interface gigabit <font color=\"orange\">$mltports</font><br>
 name <font color=\"orange\">\"$mltname\"</font><br>
 exit<br>
 <br>
-mlt <font color=\"orange\">$mltnum</font> enable name \"<font color=\"orange\">$mltname</font>\"<br>
+mlt <font color=\"orange\">$mltnum</font> enable<br>
+mlt <font color=\"orange\">$mltnum</font> name \"<font color=\"orange\">$mltname</font>\"<br>
 mlt <font color=\"orange\">$mltnum</font> member <font color=\"orange\">$mltports</font><br>
 mlt <font color=\"orange\">$mltnum</font> encapsulation dot1q<br>
 <br>
