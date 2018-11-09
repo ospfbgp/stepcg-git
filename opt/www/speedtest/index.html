@@ -180,17 +180,13 @@ function updateUI(forced){
         var status=data.testState;
         I("ip").textContent=data.clientIp;
         I("dlText").textContent=(status==1&&data.dlStatus==0)?"...":data.dlStatus;
-        drawMeter(I("dlMeter"),mbpsToAmount(Number(data.dlStatus*(status==1?oscillate():1))),meterBk,dlColor,Number(data.dlProgress)
-,progColor);
+        drawMeter(I("dlMeter"),mbpsToAmount(Number(data.dlStatus*(status==1?oscillate():1))),meterBk,dlColor,Number(data.dlProgress),progColor);
         I("ulText").textContent=(status==3&&data.ulStatus==0)?"...":data.ulStatus;
-        drawMeter(I("ulMeter"),mbpsToAmount(Number(data.ulStatus*(status==3?oscillate():1))),meterBk,ulColor,Number(data.ulProgress)
-,progColor);
+        drawMeter(I("ulMeter"),mbpsToAmount(Number(data.ulStatus*(status==3?oscillate():1))),meterBk,ulColor,Number(data.ulProgress),progColor);
         I("pingText").textContent=data.pingStatus;
-        drawMeter(I("pingMeter"),msToAmount(Number(data.pingStatus*(status==2?oscillate():1))),meterBk,pingColor,Number(data.pingPro
-gress),progColor);
+        drawMeter(I("pingMeter"),msToAmount(Number(data.pingStatus*(status==2?oscillate():1))),meterBk,pingColor,Number(data.pingProgress),progColor);
         I("jitText").textContent=data.jitterStatus;
-        drawMeter(I("jitMeter"),msToAmount(Number(data.jitterStatus*(status==2?oscillate():1))),meterBk,jitColor,Number(data.pingPro
-gress),progColor);
+        drawMeter(I("jitMeter"),msToAmount(Number(data.jitterStatus*(status==2?oscillate():1))),meterBk,jitColor,Number(data.pingProgress),progColor);
 }
 function oscillate(){
         return 1+0.02*Math.sin(Date.now()/100);
@@ -200,8 +196,8 @@ setInterval(function(){
         if(w) w.postMessage('status');
 },200);
 //update the UI every frame
-window.requestAnimationFrame=window.requestAnimationFrame||window.webkitRequestAnimationFrame||window.mozRequestAnimationFrame||wind
-ow.msRequestAnimationFrame||(function(callback,element){setTimeout(callback,1000/60);});
+window.requestAnimationFrame=window.requestAnimationFrame||window.webkitRequestAnimationFrame||window.mozRequestAnimationFrame||window.msRequestAnimationFrame||(function(callback,element){setTimeout(callback
+,1000/60);});
 function frame(){
         requestAnimationFrame(frame);
         updateUI();
@@ -223,14 +219,12 @@ function initUI(){
 </script>
 </head>
 <body>
-
 <br>
 <h2>
 <img src="/images/networkninja.png" height="30px" alt="STEPcg Network Ninja">
 Internal Speedtest
 <img src="/images/networkninja.png" height="30px" alt="STEPcg Network Ninja">
 </h2>
-
 <div id="startStopBtn" onclick="startStop()"></div>
 <div id="test">
         <div class="testGroup">
@@ -265,6 +259,7 @@ Internal Speedtest
                 IP Address: <span id="ip"></span>
         </div>
 </div>
+<a href="https://github.com/adolfintel/speedtest">Source code</a>
 <script type="text/javascript">setTimeout(initUI,100);</script>
 </body>
 </html>
