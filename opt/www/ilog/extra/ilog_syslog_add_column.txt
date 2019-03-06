@@ -1,3 +1,0 @@
-ALTER TABLE syslog
-ADD COLUMN sourceip VARCHAR(32) DEFAULT NULL AFTER host;
-ALTER TABLE syslog ADD KEY ( `sourceip` );
