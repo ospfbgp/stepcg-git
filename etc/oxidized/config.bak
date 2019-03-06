@@ -3,7 +3,7 @@ username: rwa
 password: rwa
 model: voss
 # Interval to retrieve configurations
-interval: 3600
+interval: 86400
 log: /etc/oxidized/oxidized.log
 use_syslog: false
 debug: false
@@ -31,7 +31,6 @@ output:
     user: oxidized
     email: dcox@stepcg.com
 #    single_repo: true
-    #repo: "/etc/oxidized/git-repos/switch_backups.git"
     repo: "/etc/oxidized/data/devices.git"
 
 #source:
@@ -64,11 +63,14 @@ source:
 # map username/password to model
 models:
   voss:
-    username: dcox
-    password: tokenring
+    username: rwa
+    password: rwa
   boss:
-    username: dcox
-    password: tokenring
+    username: RW
+    password: securepasswd
+    procurve:
+  username: swmin
+    password: somepassword
 
 # map username/password to group
 #groups:
@@ -77,7 +79,7 @@ models:
 #    password: securepasswd
 #  dms:
 #    username: RW
-#    password: securepasswod
+#    password: securepassword
 #  core:
 #    username: rwa
 #    password: rwa
@@ -86,3 +88,4 @@ models:
 model_map:
   voss: voss
   boss: boss
+  procurve: procurve
