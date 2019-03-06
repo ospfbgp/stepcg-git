@@ -1,0 +1,3 @@
+# add this file to /etc/cron.d directory
+# purge log files at minute 5 past every 4th hour
+15 */4 * * *   root   /opt/www/ilog/extra/purge_mysql.sh  >> /dev/null 2>&1
