@@ -41,7 +41,6 @@ $columns = array(
         array( 'db' => 'version',    'dt' => 8 ),
         array( 'db' => 'serial',     'dt' => 9 ),
         array( 'db' => 'features',   'dt' => 10 ),
-        array( 'db' => 'uptime',     'dt' => 11 )
 
 );
 
