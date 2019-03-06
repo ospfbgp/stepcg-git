@@ -71,26 +71,7 @@
                        { "orderable": true, "width": "30px",  "targets": 7 },
                        { "orderable": true, "width": "50px", "targets": 8 },
                        { "orderable": true, "width": "50px", "targets": 9 },
-                       { "orderable": true, "width": "100px", "targets": 10 },
-                       { "orderable": true, "width": "30px",  "targets": 11, "searchable": false, 
-                        "download": "download_link", "render": function ( data, type, row, meta ) 
-                         { 
-
-var numdays = Math.floor(data / 86400);
-var numhours = Math.floor((data % 86400) / 3600);
-var numminutes = Math.floor(((data % 86400) % 3600) / 60);
-var numseconds = ((data % 86400) % 3600) % 60;
-
-if (numdays == 0) {
-   return '<p class="text-danger">'+numdays+' days</p>';
-} else {
-   return numdays + " days";
-};
-//return numdays + " days " + numhours + " hours " + numminutes + " minutes " + numseconds + " seconds";
-
-                         } 
-                       }
-                   ],
+                       { "orderable": true, "width": "100px", "targets": 10 },   
                    fixedColumns: true,
                    language: { 
                       "search": "",
