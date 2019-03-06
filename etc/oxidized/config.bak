@@ -8,7 +8,7 @@ log: /etc/oxidized/oxidized.log
 use_syslog: false
 debug: false
 threads: 30
-timeout: 20
+timeout: 120
 retries: 3
 prompt: !ruby/regexp /^([\w.@-]+[#>]\s?)$/
 # what ip address to listen to for web interface
