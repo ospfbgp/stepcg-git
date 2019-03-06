@@ -59,7 +59,7 @@ $sql_details = array(
 // require( 'ssp.class.php' );
 require('ssp.customized.class.php' );
 
-$joinQuery = "FROM `devices` AS `u` JOIN `locations` AS `ud` ON (`ud`.`id` = `u`.`device_id`)";
+$joinQuery = "FROM `devices` AS `u` LEFT JOIN `locations` AS `ud` ON (`ud`.`id` = `u`.`device_id`)";
 $extraWhere = "";
 $groupBy = "";
 $having = "";
