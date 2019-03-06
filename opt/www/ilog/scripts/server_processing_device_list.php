@@ -30,17 +30,17 @@ $primaryKey = 'device_id';
 // indexes
 $columns = array(
 	array( 'db' => '`u`.`device_id`', 'dt' => 0, 'field' => 'device_id' ),
-	array( 'db' => '`u`.`status`',  'dt' => 1, 'field' => 'status' ),
+	array( 'db' => '`u`.`status`',    'dt' => 1, 'field' => 'status' ),
 	array( 'db' => '`u`.`sysName`',   'dt' => 2, 'field' => 'sysName' ),
-	array( 'db' => '`u`.`hostname`', 'dt' => 3, 'field' => 'hostname' ),
-	array( 'db' => '`u`.`hostname`', 'dt' => 4, 'field' => 'hostname' ),
+	array( 'db' => '`u`.`hostname`',  'dt' => 3, 'field' => 'hostname' ),
+	array( 'db' => '`u`.`hostname`',  'dt' => 4, 'field' => 'hostname' ),
 	array( 'db' => '`ud`.`location`', 'dt' => 5, 'field' => 'location' ),
-	array( 'db' => '`u`.`hardware`', 'dt' => 6, 'field' => 'hardware' ),
-	array( 'db' => '`u`.`os`', 'dt' => 7, 'field' => 'os' ),
-	array( 'db' => '`u`.`version`', 'dt' => 8, 'field' => 'version' ),
-	array( 'db' => '`u`.`serial`', 'dt' => 9, 'field' => 'serial' ),
-	array( 'db' => '`u`.`features`', 'dt' => 10, 'field' => 'features' ),
-	array( 'db' => '`u`.`uptime`', 'dt' => 11, 'field' => 'uptime' ),
+	array( 'db' => '`u`.`hardware`',  'dt' => 6, 'field' => 'hardware' ),
+	array( 'db' => '`u`.`os`',        'dt' => 7, 'field' => 'os' ),
+	array( 'db' => '`u`.`version`',   'dt' => 8, 'field' => 'version' ),
+	array( 'db' => '`u`.`serial`',    'dt' => 9, 'field' => 'serial' ),
+	array( 'db' => '`u`.`features`',  'dt' => 10, 'field' => 'features' ),
+	array( 'db' => '`u`.`uptime`',    'dt' => 11, 'field' => 'uptime' ),
 );
 
 // SQL server connection information
