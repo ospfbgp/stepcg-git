@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <meta charset="utf-8"/>
+	<title>iLog Ignition Access log search</title>
+        <link rel="stylesheet" type="text/css" href="./bootstrap-3.3.7-dist/css/bootstrap.min.css">
+        <link rel="stylesheet" type="text/css" href="./css/dataTables.bootstrap.css">
+	<link rel="stylesheet" type="text/css" href="./css/buttons.dataTables.min.css">
+        <link rel="stylesheet" type="text/css" href="./css/style_ilog.css">
+        <link rel="stylesheet" type="text/css" href="./css/buttons.bootstrap.min.css">
+        <script type="text/javascript" src="./js/jquery-1.12.4.js"> </script>
+        <script type="text/javascript" src="./js/jquery.dataTables.js"> </script>
+        <script type="text/javascript" src="./js/dataTables.bootstrap.js"> </script>
+        <script type="text/javascript" src="./js/dataTables.colReorder.min.js"> </script>
+        <script type="text/javascript" src="./js/dataTables.buttons.min.js"> </script>
+        <script type="text/javascript" src="./js/buttons.bootstrap.min.js"> </script>
+        <script type="text/javascript" src="./js/buttons.colVis.min.js"> </script>
+        <script type="text/javascript" src="./mark.js/jquery.mark.js"> </script>
+        <script type="text/javascript" src="./js/datatables.mark.js"> </script>
+	<script type="text/javascript" class="init">
+            $(document).ready(function() {
+                var otable = $('#example').DataTable( {
+                    processing: true,
+                    serverSide: true,
+                    initComplete : function () {
+                        otable.buttons().container()
+                       .appendTo( $('#example_wrapper .col-sm-6:eq(0)'));
+                    },
+                    ajax: "./scripts/ilog_ignition_catId_10.php",
+                    scrollY: '70vh',
+                    scrollCollapse: true,
+                    scrollX: true,
+		    mark: true,
+                    lengthMenu: [
+                        [ 32, 64, 128, 256, 512, 1024, 2048 ],
+                        [ '32 logs', '64 logs', '128 logs', '256 logs', '512 logs', '1024 logs', '2048 logs']
+                    ],
+                    pageLength: 256,
+                    order: [[ 0, "desc" ]],
+                    stateSave: true,
+                    colReorder: true,
+                    dom: "<'row'<'col-xs-6'B>>" + "<'row'<'col-lg-12'rt>>" + "<'row'<'col-xs-6'i><'col-xs-6'p>>",
+                    columns: [  
+                        { "visible": true }, 
+                        { "visible": true }, 
+                        { "visible": true }, 
+                        { "visible": false }, 
+                        { "visible": false }, 
+                        { "visible": false }, 
+                        { "visible": true }, 
+                        { "visible": true }, 
+                        { "visible": false }, 
+                        { "visible": true }, 
+                        { "visible": true }, 
+                        { "visible": true }, 
+                        { "visible": true }, 
+                        { "visible": true }, 
+                        { "visible": false }, 
+                        { "visible": false }, 
+                        { "visible": false }, 
+                        { "visible": true }, 
+                        { "visible": true }, 
+                        { "visible": false }
+                    ],
+                       "columnDefs": [ {
+                       "targets": [ 5, 10 ],
+                       "createdCell": function (td, cellData, rowData, row, col) {
+                            var reauth = new RegExp("Authenticated|Allow");
+                            if (reauth.test(cellData)) {
+                                $(td).css('color', 'green')
+                                $(td).css('font-weight', 'bold')
+                            }
+                            var refail = new RegExp("[Ff]ailed|[Dd]eny");
+                            if (refail.test(cellData)) {
+                                $(td).css('color', 'red')
+                                $(td).css('font-weight', 'bold')
+                            }
+                       }
+                    } ],
+                    //buttons: [ 'colvis', 'pageLength' ]
+                    buttons: [
+                        {
+                            extend: 'colvis',
+                            text: 'Display Columns',
+                            className: 'columns',
+                            columns: ':not(.noVis)'
+                        },
+                        {
+                            extend: 'pageLength',
+                            text: 'Select Rows',
+                            className: 'rows'
+                        },
+			{
+                            text: 'Refresh logs',
+                            className: 'refresh',
+                            action: function () { otable.ajax.reload(); }
+                        },
+                        {
+                            text: 'Reset',
+                            className: 'refresh',
+                            action: function () { 
+                                for(key in localStorage) {
+                                    delete localStorage[key];
+                                }
+                                $("#global_filter").val("");
+                                $('#example').DataTable().search( $('#global_filter').val()).draw();
+                                window.location.reload(false); 
+                            }
+                        }
+                    ],
+                } );
+                // Filter on Enter
+                $('input.global_filter').on('keydown', function (e) {
+                    var key = e.which;
+                    switch (key) {
+                    case 13: // enter
+                        $('#example').DataTable().search( $('#global_filter').val()).draw();
+                        localStorage.setItem("globalfilter", $('#global_filter').val());
+                        break;
+                    default:
+                        break;
+                } });
+                $('#btnReset').on('click', function () { 
+                    //resetGlobal(); 
+                    localStorage.removeItem("globalfilter");
+                    $("#global_filter").val("");
+                    $('#example').DataTable().search( '' ).draw();
+                    $("#global_filter").focus();
+                });
+               if("globalfilter" in localStorage){
+                   $('#global_filter').val(localStorage.getItem("globalfilter"));
+                   $('#example').DataTable().search( $('#global_filter').val()).draw();
+                } 
+                $("#global_filter").focus(); 
+            } );
+        </script>
+    </head>
+<body id="body">
+    <div class="container-fluid">
+        <table class="table1">
+            <tbody>
+                <tr>
+                    <td><img src="/images/stepcg_logo.png" height="30px" alt="STEPcg Network Ninja"></td>
+                    <td>iLog Ignition Access log search</td>        
+                </tr>
+            </tbody>
+        </table>
+        <table class="table3">
+            <tbody>
+                <tr>
+                    <td>
+                        <div class="input-group input-group-xs col-md-16">
+                            <input type="text" class="form-control global_filter" id="global_filter" placeholder="Global Search" />
+                            <span class="input-group-btn">
+                               <button class="btn btn-primary" type="button" id="btnReset" >
+                                   <i class="glyphicon glyphicon-remove"></i>
+                               </button>
+                            </span>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <table class="table table-striped table-bordered table-hover table-condensed" id="example" style="width:100%">
+            <thead>
+                <tr>
+                <th>seq</th>
+                <th>Id</th>
+                <th>datetime&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+                <th>host</th>
+                <th>AuthServerName</th>
+                <th>AuthenticationDecision</th>
+                <th>AuthenticatorIp</th>
+                <th>AuthenticatorName</th>
+                <th>AuthenticatorType</th>
+                <th>UserNameAttr</th>
+                <th>AuthorizationDecision</th>
+                <th>AuthorizationRuleIds</th>
+                <th>CallingStationIdAttr</th>
+                <th>AuthProtocol</th>
+                <th>Description</th>
+                <th>DirectoryServiceName</th>
+                <th>NASIPAddrAttr</th>
+                <th>ProvisioningValues</th>
+                <th>ServiceCatName</th>
+                <th>UserId</th>
+                </tr>
+            </thead>
+       </table>
+    </div>
+</body>
+</html>
