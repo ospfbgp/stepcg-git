@@ -35,12 +35,13 @@ $columns = array(
         array( 'db' => 'sysName',    'dt' => 2 ),
         array( 'db' => 'hostname',    'dt' => 3 ),
         array( 'db' => 'hostname',   'dt' => 4 ),
-        array( 'db' => 'location',   'dt' => 5 ),
+        array( 'db' => 'hostname',   'dt' => 5 ),
         array( 'db' => 'hardware',   'dt' => 6 ),
         array( 'db' => 'os',         'dt' => 7 ),
         array( 'db' => 'version',    'dt' => 8 ),
         array( 'db' => 'serial',     'dt' => 9 ),
         array( 'db' => 'features',   'dt' => 10 ),
+        array( 'db' => 'uptime',     'dt' => 11 )
 
 );
 
