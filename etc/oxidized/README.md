@@ -48,6 +48,6 @@ cp $STEPCG/etc/logrotate.d/oxidized /etc/logrotate.d/oxidized
 # Erase config backups
 service oxidized stop
 rm -fr /etc/oxidized/.config
-rm -fr /etc/oxidized/git-repos/
 rm -fr /etc/oxidized/git-repos
-rm -fr /etc/oxidized
+rm -fr /etc/oxidized/data
+service oxidized start
