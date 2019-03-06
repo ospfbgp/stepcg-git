@@ -35,20 +35,26 @@ mkdir /etc/oxidized
 cp -r $STEPCG/etc/oxidized/* /etc/oxidized/.
 chown -R oxidized:oxidized /etc/oxidized
 
+# create configuration file
+# you will need to edit and change username/password and create api hook inside of Dashboard
+cp /etc/oxidized/oxidized_config_sample /etc/oxidized/config
+chown -R oxidized:oxidized /etc/oxidized
+
 # Verify /opt/librenms/config.php
 $config['oxdized']['enabled'] = TRUE;
 $config['oxidized']['url'] = 'http://127.0.0.1:8888/configs';
 $config['oxidized']['features']['versionin'] = true;
 $config['oxidized']['reload_nodes'] = true;
 $config['oxidized']['ignore_types'] = array('firewall','server','power','storage');
-$config['oxidized']['ignore_os'] = array('linux','windows');
+$config['oxidized']['ignore_os'] = array('linux','windows','avaya-ipo');
 
 #setup logroate for oxidized
 cp $STEPCG/etc/logrotate.d/oxidized /etc/logrotate.d/oxidized
 
-# Erase config backups
+# Erase config backups and clean logs
 service oxidized stop
 rm -fr /etc/oxidized/.config
+rm -fr /etc/oxidized/git-repos/
 rm -fr /etc/oxidized/git-repos
-rm -fr /etc/oxidized/data
+rm -fr /etc/oxidized/*.log*
 service oxidized start
