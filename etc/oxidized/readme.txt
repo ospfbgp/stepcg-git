@@ -24,15 +24,16 @@ rm /lib/systemd/system/oxidized.service
 rm /etc/systemd/system/multi-user.target.wants/oxidized.service
 cp $STEPCG/etc/oxidized/oxidized.service /lib/systemd/system/oxidized.service
 ln -s /lib/systemd/system/oxidized.service /etc/systemd/system/multi-user.target.wants/oxidized.service
+systemctl daemon-reload
 
 # Start/stop service
-systemctl daemon-reload
 service oxidized stop
 service oxidized start
 
 #setup oxidized
 mkdir /etc/oxidized
 cp -r $STEPCG/etc/oxidized/* /etc/oxidized/.
+chown -R oxidized:oxidized /etc/oxidized
 
 # Verify /opt/librenms/config.php
 $config['oxdized']['enabled'] = TRUE;
