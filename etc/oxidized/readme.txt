@@ -37,7 +37,7 @@ cp /etc/oxidized/oxidized_config_sample /etc/oxidized/config
 chown -R oxidized:oxidized /etc/oxidized
 
 # Verify /opt/librenms/config.php
-$config['oxdized']['enabled'] = TRUE;
+$config['oxidized']['enabled'] = TRUE;
 $config['oxidized']['url'] = 'http://127.0.0.1:8888/configs';
 $config['oxidized']['features']['versionin'] = true;
 $config['oxidized']['reload_nodes'] = true;
