@@ -15,7 +15,7 @@ export STEPCG="/home/stepcg/stepcg-git"
 echo $STEPCG
 rm /etc/oxidized/*.pid
 rm /etc/init.d/oxidized
-cp $STEPCG/etc/oxidized  /etc/init.d/.
+cp $STEPCG/etc/oxidized/oxidized  /etc/init.d/.
 chmod +x /etc/init.d/oxidized
 update-rc.d oxidized defaults
 
