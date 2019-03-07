@@ -26,10 +26,6 @@ cp $STEPCG/etc/oxidized/oxidized.service /lib/systemd/system/oxidized.service
 ln -s /lib/systemd/system/oxidized.service /etc/systemd/system/multi-user.target.wants/oxidized.service
 systemctl daemon-reload
 
-# Start/stop service
-service oxidized stop
-service oxidized start
-
 #setup oxidized
 mkdir /etc/oxidized
 cp -r $STEPCG/etc/oxidized/* /etc/oxidized/.
