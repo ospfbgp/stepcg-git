@@ -68,8 +68,8 @@ models:
   boss:
     username: RW
     password: securepasswd
-    procurve:
-  username: swmin
+  procurve:
+    username: swmin
     password: somepassword
 
 # map username/password to group
