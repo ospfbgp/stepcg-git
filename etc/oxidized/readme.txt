@@ -5,6 +5,10 @@ grep oxidized /etc/passwd
 
 # Check for oxidized install
 apt-get -y install ruby ruby-dev libsqlite3-dev libssl-dev pkg-config cmake libssh2-1-dev libicu-dev zlib1g-dev g++
+gem install oxidized
+gem install oxidized-script oxidized-web
+
+# if already installed then update
 gem update oxidized
 gem update oxidized-script oxidized-web
 
